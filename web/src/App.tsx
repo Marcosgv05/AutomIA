@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Sidebar } from './components/Sidebar';
 import { Login } from './views/Login';
 import { Dashboard } from './views/Dashboard';
@@ -16,7 +15,6 @@ import { Loader2 } from 'lucide-react';
 
 function AppContent() {
   const { isAuthenticated, isLoading, handleGoogleCallback } = useAuth();
-  const { theme } = useTheme();
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
   // Verifica se há token do Google na URL (callback)
@@ -35,8 +33,8 @@ function AppContent() {
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -66,19 +64,12 @@ function AppContent() {
   };
 
   return (
-    <div className={`flex min-h-screen font-sans transition-colors duration-300 ${
-      theme === 'dark' 
-        ? 'bg-slate-950 text-slate-100' 
-        : 'bg-slate-100 text-slate-900'
-    }`}>
+    <div className="min-h-screen bg-background text-zinc-100 font-sans selection:bg-primary/30 flex">
       <Sidebar currentView={currentView} onChangeView={setCurrentView} />
-
-      <main className={`flex-1 ml-64 p-8 overflow-y-auto h-screen ${
-        theme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'
-      }`}>
-        <div className="max-w-7xl mx-auto">
-          {renderView()}
-        </div>
+      
+      {/* Main Content Area - Adjusted margin for sidebar */}
+      <main className="flex-1 ml-16 lg:ml-64 p-4 lg:p-8 min-h-screen overflow-x-hidden transition-all duration-300">
+        {renderView()}
       </main>
     </div>
   );
@@ -97,11 +88,9 @@ function AppRoutes() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
 

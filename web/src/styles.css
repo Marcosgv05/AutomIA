@@ -1,39 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Variáveis de tema - Dark Mode (padrão) */
-:root, .dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --bg-card: rgba(30, 41, 59, 0.8);
-  --border-color: rgba(71, 85, 105, 0.5);
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-primary: #6366f1;
-  --accent-secondary: #818cf8;
-  --scrollbar-track: #0f172a;
-  --scrollbar-thumb: #475569;
-}
-
-/* Light Mode */
-.light {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.9);
-  --border-color: rgba(203, 213, 225, 0.8);
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-tertiary: #64748b;
-  --text-muted: #94a3b8;
-  --accent-primary: #6366f1;
-  --accent-secondary: #4f46e5;
-  --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: #cbd5e1;
+/* NexusAI Theme - Dark Mode Professional */
+:root {
+  --bg-background: #09090b;
+  --bg-surface: #18181b;
+  --bg-surface-highlight: #27272a;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --border-color-hover: rgba(255, 255, 255, 0.1);
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+  --accent-primary: #f97316;
+  --accent-primary-hover: #ea580c;
+  --accent-success: #22c55e;
+  --accent-warning: #eab308;
+  --accent-danger: #ef4444;
+  --scrollbar-track: #09090b;
+  --scrollbar-thumb: #27272a;
 }
 
 @layer utilities {
@@ -97,42 +85,46 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow-x: hidden;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: #000000;
+  color: #f4f4f5;
 }
 
-/* Scrollbar customizado */
+/* Custom subtle scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
+  background: #27272a;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: #3f3f46;
 }
 
-/* Classes de tema para componentes */
-.theme-bg-primary { background-color: var(--bg-primary); }
-.theme-bg-secondary { background-color: var(--bg-secondary); }
-.theme-bg-tertiary { background-color: var(--bg-tertiary); }
-.theme-bg-card { background-color: var(--bg-card); }
-.theme-border { border-color: var(--border-color); }
-.theme-text-primary { color: var(--text-primary); }
-.theme-text-secondary { color: var(--text-secondary); }
-.theme-text-tertiary { color: var(--text-tertiary); }
-.theme-text-muted { color: var(--text-muted); }
+/* Glass panel effect */
+.glass-panel {
+  background: rgba(24, 24, 27, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Glow effects */
+.glow-primary {
+  box-shadow: 0 0 20px -5px rgba(249, 115, 22, 0.3);
+}
+
+.glow-success {
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
 
 /* FullCalendar Dark Theme */
 .calendar-wrapper {

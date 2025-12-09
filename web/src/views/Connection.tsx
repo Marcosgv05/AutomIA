@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from '../components/ui/Card';
-import { RefreshCw, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { RefreshCw, Loader2, Wifi, ShieldCheck } from 'lucide-react';
 import { whatsappApi } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'waiting_qr' | 'connected';
 
 export const Connection: React.FC = () => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [sessionId, setSessionId] = useState('minha-empresa');
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -126,155 +122,126 @@ export const Connection: React.FC = () => {
   }, [sessionId]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col items-center justify-center animate-fade-in max-w-5xl mx-auto">
+      
+      {/* Status Header */}
+      <div className="w-full max-w-md mb-8 flex items-center justify-between border-b border-white/5 pb-4">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Conexão WhatsApp</h1>
-          <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>Conecte o WhatsApp da sua empresa para ativar o atendimento com IA.</p>
+          <h1 className="text-xl font-bold text-white tracking-tight">Gateway WhatsApp</h1>
+          <p className="text-zinc-500 text-xs font-mono mt-1">PROTOCOLO: WAPI-V2 SECURE</p>
         </div>
-        <div className={`px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium border ${
-          status === 'connected'
-            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-            : status === 'waiting_qr'
-            ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
-            : status === 'connecting'
-            ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-            : isDark 
-              ? 'bg-slate-800 text-slate-400 border-slate-700'
-              : 'bg-slate-100 text-slate-600 border-slate-300'
+        <div className={`flex items-center px-3 py-1 rounded border ${
+          status === 'connected' 
+            ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500' 
+            : 'bg-zinc-900 border-zinc-800 text-zinc-500'
         }`}>
-          <div className={`w-2 h-2 rounded-full ${
-            status === 'connected' ? 'bg-emerald-500' :
-            status === 'waiting_qr' ? 'bg-yellow-500 animate-pulse' :
-            status === 'connecting' ? 'bg-blue-500 animate-pulse' :
-            isDark ? 'bg-slate-500' : 'bg-slate-400'
-          }`} />
-          {status === 'connected' ? 'Conectado' :
-           status === 'waiting_qr' ? 'Aguardando leitura do QR...' :
-           status === 'connecting' ? 'Iniciando...' :
-           'Desconectado'}
+          <div className={`w-2 h-2 rounded-full mr-2 ${status === 'connected' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-500'}`}></div>
+          <span className="text-xs font-bold uppercase tracking-wider">{status === 'connected' ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
       </div>
 
-      <Card className="flex flex-col items-center justify-center py-12 min-h-[480px]">
-        {status === 'connected' ? (
-          <div className="text-center space-y-4">
-            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
-              <CheckCircle className="w-10 h-10 text-emerald-500" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl items-center">
+        
+        {/* Instructions Column */}
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="flex items-center justify-center w-6 h-6 rounded bg-zinc-900 border border-zinc-700 text-zinc-400 text-xs font-mono mr-4 mt-0.5">1</div>
+              <div>
+                <h4 className="text-zinc-200 text-sm font-medium">Abra o WhatsApp Business</h4>
+                <p className="text-zinc-500 text-xs mt-1">Certifique-se que está na versão mais recente.</p>
+              </div>
             </div>
-            <h2 className={`text-xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Tudo pronto!</h2>
-            <p className={`max-w-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-              Sua sessão <strong>{sessionId}</strong> está conectada e pronta para receber mensagens.
+            <div className="w-px h-6 bg-zinc-800 ml-3"></div>
+            <div className="flex items-start">
+              <div className="flex items-center justify-center w-6 h-6 rounded bg-zinc-900 border border-zinc-700 text-zinc-400 text-xs font-mono mr-4 mt-0.5">2</div>
+              <div>
+                <h4 className="text-zinc-200 text-sm font-medium">Menu {'>'} Aparelhos Conectados</h4>
+                <p className="text-zinc-500 text-xs mt-1">Toque em "Conectar um aparelho".</p>
+              </div>
+            </div>
+            <div className="w-px h-6 bg-zinc-800 ml-3"></div>
+            <div className="flex items-start">
+              <div className="flex items-center justify-center w-6 h-6 rounded bg-zinc-900 border border-zinc-700 text-zinc-400 text-xs font-mono mr-4 mt-0.5">3</div>
+              <div>
+                <h4 className="text-zinc-200 text-sm font-medium">Escaneie o QR Code</h4>
+                <p className="text-zinc-500 text-xs mt-1">Aponte a câmera para a tela ao lado.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-zinc-900/30 border border-white/5 p-4 rounded-lg">
+            <div className="flex items-center space-x-2 text-zinc-400 mb-2">
+              <ShieldCheck size={16} className="text-primary" />
+              <span className="text-xs font-semibold uppercase">Segurança Ativa</span>
+            </div>
+            <p className="text-[10px] text-zinc-600 leading-relaxed">
+              A conexão é estabelecida através de um túnel criptografado de ponta a ponta. 
+              Nenhum dado de mensagem é armazenado permanentemente nos servidores de gateway, 
+              apenas metadados de sessão.
             </p>
-            <button
-              onClick={handleDisconnect}
-              className="mt-6 px-6 py-2 border border-red-500/30 text-red-500 rounded-lg hover:bg-red-500/10 font-medium transition-colors"
-            >
-              Desconectar
-            </button>
           </div>
-        ) : (
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="text-center md:text-left space-y-6 max-w-sm">
-              <div className="space-y-3">
-                <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                  ID da Sessão (nome único para esta conta)
-                </label>
-                <input
-                  type="text"
-                  value={sessionId}
-                  onChange={(e) => setSessionId(e.target.value)}
-                  placeholder="ex: minha-empresa"
-                  className={`w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all ${
-                    isDark 
-                      ? 'bg-slate-800 border border-slate-700 text-slate-200' 
-                      : 'bg-white border border-slate-300 text-slate-900'
-                  }`}
-                  disabled={status !== 'disconnected'}
-                />
-              </div>
+        </div>
 
-              <div className={`space-y-4 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-indigo-100 border-indigo-200 text-indigo-700'}`}>1</span>
-                  <span>Clique em <strong className="text-indigo-500">"Conectar"</strong></span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-indigo-100 border-indigo-200 text-indigo-700'}`}>2</span>
-                  <span>Abra o WhatsApp no celular</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-indigo-100 border-indigo-200 text-indigo-700'}`}>3</span>
-                  <span>Vá em <strong className="text-indigo-500">Aparelhos conectados</strong></span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-indigo-100 border-indigo-200 text-indigo-700'}`}>4</span>
-                  <span>Escaneie o QR Code que aparecer</span>
-                </div>
-              </div>
-            </div>
+        {/* QR Code Column */}
+        <div className="flex justify-center">
+          <div className="relative group cursor-pointer" onClick={status === 'disconnected' ? handleConnect : undefined}>
+            
+            {/* Decorative Frame */}
+            <div className="absolute -inset-4 border border-zinc-800 rounded-xl z-0"></div>
+            <div className="absolute -inset-4 border border-primary/20 rounded-xl z-0 blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-primary -translate-x-5 -translate-y-5"></div>
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-primary translate-x-5 translate-y-5"></div>
 
-            <div className="flex flex-col items-center gap-4">
-              <div className={`w-64 h-64 rounded-xl flex items-center justify-center relative overflow-hidden border-4 ${
-                isDark 
-                  ? 'bg-slate-800 border-slate-700' 
-                  : 'bg-slate-100 border-slate-300'
-              }`}>
-                {status === 'connecting' && (
-                  <div className={`absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm z-10 ${isDark ? 'bg-slate-900/90' : 'bg-white/90'}`}>
-                    <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-2" />
-                    <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Iniciando sessão...</span>
+            <div className="bg-white p-4 rounded-lg shadow-2xl relative z-10 w-64 h-64 flex items-center justify-center overflow-hidden">
+              {status === 'connected' ? (
+                <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+                  <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/30">
+                    <Wifi size={40} className="text-white" />
                   </div>
-                )}
-                {status === 'waiting_qr' && qrUrl ? (
-                  <img src={qrUrl} alt="QR Code WhatsApp" className="w-56 h-56 rounded" />
-                ) : status === 'disconnected' ? (
-                  <div className={`w-56 h-56 rounded flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
-                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>QR aparecerá aqui</span>
-                  </div>
-                ) : null}
-              </div>
-
-              {status === 'disconnected' && (
-                <button
-                  onClick={handleConnect}
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 font-medium transition-colors"
-                >
-                  Conectar
-                </button>
-              )}
-
-              {status === 'waiting_qr' && (
-                <button
-                  onClick={handleConnect}
-                  className="text-sm text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Gerar novo QR
-                </button>
+                  <h3 className="text-zinc-900 font-bold text-lg">Sincronizado</h3>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDisconnect(); }}
+                    className="mt-4 text-xs text-red-500 hover:text-red-700 font-medium border border-red-100 bg-red-50 px-3 py-1 rounded"
+                  >
+                    Encerrar Sessão
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {status === 'waiting_qr' && (
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/20 to-transparent h-[10%] w-full animate-pulse z-20 pointer-events-none"></div>
+                  )}
+                  {status === 'connecting' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-20">
+                      <RefreshCw className="text-zinc-400 animate-spin mb-2" />
+                      <span className="text-xs font-mono text-zinc-500">Gerando chaves...</span>
+                    </div>
+                  )}
+                  {status === 'waiting_qr' && qrUrl ? (
+                    <img 
+                      src={qrUrl} 
+                      alt="QR Code" 
+                      className="w-full h-full transition-all duration-700 opacity-100" 
+                    />
+                  ) : status === 'disconnected' ? (
+                    <div className="flex flex-col items-center justify-center">
+                      <RefreshCw className="text-zinc-400 mb-2" size={24} />
+                      <span className="text-xs font-mono text-zinc-500">Clique para conectar</span>
+                    </div>
+                  ) : null}
+                </>
               )}
             </div>
           </div>
-        )}
-
-        {error && (
-          <div className="mt-6 text-red-400 text-sm flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            {error}
-          </div>
-        )}
-      </Card>
-
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-        <div>
-          <h4 className="text-sm font-semibold text-blue-300">Nota Importante</h4>
-          <p className="text-sm text-blue-400/80 mt-1">
-            Mantenha seu celular conectado à internet para que a automação funcione corretamente.
-            O WhatsApp Web depende da conexão do seu dispositivo móvel.
-          </p>
         </div>
       </div>
+
+      {error && (
+        <div className="mt-8 text-red-400 text-sm flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
