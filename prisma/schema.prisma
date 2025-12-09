@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Empresa (tenant) que usa a plataforma
+model Tenant {
+  id        String        @id @default(uuid())
+  name      String
+  slug      String        @unique
+  plan      String        @default("trial")
+  settings  Json?
+
+  users            TenantUser[]
+  whatsappAccounts WhatsappAccount[]
+  googleAccounts   GoogleAccount[]
+  chats            Chat[]
+  knowledgeBases   KnowledgeBase[]
+  documents        Document[]
+  appointments     Appointment[]
+  googleCalendars  GoogleCalendar[]
+  messages         Message[]
+  documentChunks   DocumentChunk[]
+  documentEmbeddings DocumentEmbedding[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Usuário da plataforma (pode participar de vários tenants)
+model User {
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  passwordHash   String?
+
+  tenantMemberships TenantUser[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Ligação usuário ↔ tenant, com papel (owner, admin, agent, etc.)
+model TenantUser {
+  id       String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String
+
+  role     String
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, userId])
+}
+
+/// Conta de WhatsApp conectada via Baileys
+model WhatsappAccount {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  phoneNumber   String
+  displayName   String?
+  status        String   @default("disconnected") // connected, disconnected, error
+  lastConnectedAt DateTime?
+
+  chats    Chat[]
+  sessions WhatsappSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+/// Sessão lógica do Baileys para uma conta de WhatsApp
+model WhatsappSession {
+  id                String          @id @default(uuid())
+
+  whatsappAccount   WhatsappAccount @relation(fields: [whatsappAccountId], references: [id])
+  whatsappAccountId String
+
+  /// Identificador da sessão usado pelo Baileys
+  sessionId String @unique
+
+  /// Estado de autenticação serializado (pode ser usado se preferir guardar tudo em um JSON)
+  authState Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([whatsappAccountId])
+}
+
+/// Tabela chave-valor para armazenar o auth state do Baileys (similar ao projeto antigo)
+model WhatsappAuth {
+  id        Int      @id @default(autoincrement())
+  sessionId String
+  dataKey   String
+  dataValue String
+  updatedAt DateTime @default(now())
+
+  @@unique([sessionId, dataKey])
+  @@index([sessionId])
+}
+
+/// Conta Google conectada (usada para Google Calendar)
+model GoogleAccount {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  googleUserId   String
+  email          String
+  accessToken    String
+  refreshToken   String
+  tokenExpiresAt DateTime
+  scopes         String[]
+
+  calendars GoogleCalendar[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+/// Calendário específico dentro da conta Google (ex: primary ou outro calendário)
+model GoogleCalendar {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  googleAccount   GoogleAccount @relation(fields: [googleAccountId], references: [id])
+  googleAccountId String
+
+  calendarId String
+  summary    String?
+  timeZone   String?
+  isDefault  Boolean @default(false)
+
+  appointments Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([googleAccountId])
+}
+
+/// Chat entre um número de WhatsApp do tenant e o cliente final
+model Chat {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  whatsappAccount   WhatsappAccount @relation(fields: [whatsappAccountId], references: [id])
+  whatsappAccountId String
+
+  customerWaId     String
+  customerName     String?
+  aiPaused         Boolean @default(false)
+  endedByCustomer  Boolean @default(false)
+
+  messages     Message[]
+  appointments Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, whatsappAccountId])
+  @@index([tenantId, customerWaId])
+}
+
+/// Mensagens trocadas em um chat (histórico completo)
+model Message {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  chat   Chat   @relation(fields: [chatId], references: [id])
+  chatId String
+
+  direction String // inbound, outbound, system
+  role      String // user, assistant, system, tool
+  type      String // text, audio, image, file
+
+  text      String?
+  mediaUrl  String?
+  rawPayload Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, chatId, createdAt])
+}
+
+/// Compromissos ligados ao Google Calendar, criados pela IA
+model Appointment {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  chat   Chat? @relation(fields: [chatId], references: [id])
+  chatId String?
+
+  googleCalendar   GoogleCalendar @relation(fields: [googleCalendarId], references: [id])
+  googleCalendarId String
+
+  googleEventId String
+  status        String // pending, confirmed, canceled
+
+  startTime DateTime
+  endTime   DateTime
+  timezone  String?
+  payload   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, chatId])
+  @@index([tenantId, googleCalendarId])
+}
+
+/// Conjuntos de conhecimento (ex: "FAQ", "Serviços", "Políticas")
+model KnowledgeBase {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  name        String
+  description String?
+
+  documents Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+/// Documento de conhecimento (PDF, planilha, texto, etc.)
+model Document {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  knowledgeBase   KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id])
+  knowledgeBaseId String
+
+  title          String
+  sourceType     String // pdf, sheet, txt, url, etc.
+  originalFileUrl String?
+  status         String // processing, ready, error
+  metadata       Json?
+
+  chunks      DocumentChunk[]
+  embeddings  DocumentEmbedding[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, knowledgeBaseId])
+}
+
+/// Pedaços de texto extraídos de documentos para RAG
+model DocumentChunk {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  document   Document @relation(fields: [documentId], references: [id])
+  documentId String
+
+  chunkIndex Int
+  content    String
+  tokenCount Int?
+  metadata   Json?
+
+  embeddings DocumentEmbedding[]
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, documentId, chunkIndex])
+}
+
+/// Embeddings vetoriais para busca semântica (usando pgvector no Postgres)
+model DocumentEmbedding {
+  id        String @id @default(uuid())
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  document   Document      @relation(fields: [documentId], references: [id])
+  documentId String
+
+  chunk     DocumentChunk @relation(fields: [chunkId], references: [id])
+  chunkId   String
+
+  /// Vetor de números (embedding) armazenado como array de decimais.
+  /// Evita depender de extensões especiais do Postgres (como pgvector).
+  embedding       Decimal[]
+  embeddingModel  String
+  metadata        Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, documentId])
+}
+

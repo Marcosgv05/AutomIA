@@ -1,0 +1,40 @@
+# Dependências
+node_modules
+web/node_modules
+
+# Build
+dist
+web/dist
+
+# Arquivos de desenvolvimento
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testes
+coverage
+*.test.ts
+*.spec.ts
+
+# Sessões do WhatsApp (são recriadas)
+auth_sessions
+
+# Documentação
+README.md
+docs
+
+# Arquivos do Windows
+Thumbs.db
+Desktop.ini
