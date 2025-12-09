@@ -3,9 +3,12 @@
 # ============================================
 
 # --- Stage 1: Build ---
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
+
+# Instala OpenSSL para Prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copia arquivos de dependências
 COPY package*.json ./
@@ -24,16 +27,16 @@ RUN npx prisma generate
 RUN npm run build
 
 # --- Stage 2: Production ---
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
 WORKDIR /app
 
 # Instala dependências do sistema para Prisma
-RUN apk add --no-cache openssl-dev
+RUN apt-get update && apt-get install -y openssl wget && rm -rf /var/lib/apt/lists/*
 
 # Cria usuário não-root para segurança
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S automia -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs automia
 
 # Copia apenas o necessário do stage de build
 COPY --from=builder /app/node_modules ./node_modules
