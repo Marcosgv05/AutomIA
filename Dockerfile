@@ -28,6 +28,9 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# Instala dependências do sistema para Prisma
+RUN apk add --no-cache openssl-dev
+
 # Cria usuário não-root para segurança
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S automia -u 1001
@@ -38,8 +41,11 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package*.json ./
 
-# Gera cliente Prisma no container de produção
+# Gera cliente Prisma como root
 RUN npx prisma generate
+
+# Dá permissão ao usuário automia
+RUN chown -R automia:nodejs /app
 
 # Muda para usuário não-root
 USER automia
