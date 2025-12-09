@@ -54,7 +54,7 @@ async function bootstrap() {
   // ==================== INICIALIZAÇÃO ====================
   
   const port = process.env.PORT || 4000; // Railway sets PORT automatically
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0'); // Listen on all interfaces for Railway
   
   logger.log(`🚀 AutomIA backend rodando na porta ${port}`);
   logger.log(`📊 Healthcheck: http://localhost:${port}/health`);
