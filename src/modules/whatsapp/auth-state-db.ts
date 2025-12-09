@@ -8,15 +8,20 @@ import { PrismaClient } from '@prisma/client';
 import { Logger } from '@nestjs/common';
 
 // Import dinâmico para Baileys (ES Module)
-let initAuthCreds: any, BufferJSON: any, AuthenticationCreds: any, SignalDataTypeMap: any;
+let initAuthCreds: any, BufferJSON: any;
+let BaileysTypes: any;
 
 const loadBaileys = async () => {
   if (!initAuthCreds) {
     const baileys = await import('@whiskeysockets/baileys');
     initAuthCreds = baileys.initAuthCreds;
     BufferJSON = baileys.BufferJSON;
-    AuthenticationCreds = baileys.AuthenticationCreds;
-    SignalDataTypeMap = baileys.SignalDataTypeMap;
+    
+    // Guardar tipos para uso posterior
+    BaileysTypes = {
+      AuthenticationCreds: baileys.AuthenticationCreds,
+      SignalDataTypeMap: baileys.SignalDataTypeMap,
+    };
   }
 };
 
@@ -102,16 +107,16 @@ export async function useDatabaseAuthState(sessionId: string) {
   };
 
   // Carrega ou cria credenciais
-  let creds: AuthenticationCreds = await readData('creds') || initAuthCreds();
+  let creds: any = await readData('creds') || initAuthCreds();
 
   return {
     state: {
       creds,
       keys: {
-        get: async (type: keyof SignalDataTypeMap, ids: string[]) => {
+        get: async (type: any, ids: string[]) => {
           const data: { [id: string]: any } = {};
           for (const id of ids) {
-            let value = await readData(`${type}-${id}`);
+            let value = await readData(`${String(type)}-${id}`);
             if (type === 'app-state-sync-key' && value) {
               value = BufferJSON.reviver('', value);
             }
@@ -123,7 +128,7 @@ export async function useDatabaseAuthState(sessionId: string) {
           for (const category in data) {
             for (const id in data[category]) {
               const value = data[category][id];
-              const key = `${category}-${id}`;
+              const key = `${String(category)}-${id}`;
               if (value) {
                 await writeData(key, value);
               } else {
