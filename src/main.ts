@@ -53,7 +53,7 @@ async function bootstrap() {
 
   // ==================== INICIALIZAÇÃO ====================
   
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 4000; // Railway sets PORT automatically
   await app.listen(port);
   
   logger.log(`🚀 AutomIA backend rodando na porta ${port}`);
