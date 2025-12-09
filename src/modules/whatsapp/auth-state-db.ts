@@ -6,7 +6,19 @@
  */
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '@nestjs/common';
-import { initAuthCreds, BufferJSON, AuthenticationCreds, SignalDataTypeMap } from '@whiskeysockets/baileys';
+
+// Import dinâmico para Baileys (ES Module)
+let initAuthCreds: any, BufferJSON: any, AuthenticationCreds: any, SignalDataTypeMap: any;
+
+const loadBaileys = async () => {
+  if (!initAuthCreds) {
+    const baileys = await import('@whiskeysockets/baileys');
+    initAuthCreds = baileys.initAuthCreds;
+    BufferJSON = baileys.BufferJSON;
+    AuthenticationCreds = baileys.AuthenticationCreds;
+    SignalDataTypeMap = baileys.SignalDataTypeMap;
+  }
+};
 
 const prisma = new PrismaClient();
 const logger = new Logger('AuthStateDB');
@@ -16,6 +28,9 @@ const logger = new Logger('AuthStateDB');
  * Compatível com useMultiFileAuthState do Baileys
  */
 export async function useDatabaseAuthState(sessionId: string) {
+  // Carrega Baileys dinamicamente antes de usar
+  await loadBaileys();
+  
   logger.log(`Inicializando auth state do banco para sessão ${sessionId}`);
 
   // Função para escrever dados
