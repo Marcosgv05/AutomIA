@@ -5,7 +5,7 @@ export class MediaService {
   private readonly logger = new Logger(MediaService.name);
   private readonly apiKey: string;
   private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-  private readonly model = 'gemini-2.5-flash-preview-05-20'; // Modelo para áudio e imagem
+  private readonly model = 'gemini-2.5-flash'; // Modelo para áudio e imagem
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || '';

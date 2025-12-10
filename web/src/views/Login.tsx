@@ -15,7 +15,7 @@ const GoogleIcon = () => (
 // Componente de partículas flutuantes
 const FloatingParticle = ({ delay, duration, size }: { delay: number; duration: number; size: number }) => (
   <div 
-    className="absolute rounded-full bg-gradient-to-r from-primary/20 to-orange-500/20 blur-xl"
+    className="absolute rounded-full bg-gradient-to-r from-primary/15 to-slate-800/40 blur-xl"
     style={{
       width: `${size}px`,
       height: `${size}px`,
@@ -62,9 +62,9 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-950 to-slate-950">
       {/* Animação de gradiente de fundo */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-orange-600/20 animate-pulse"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-slate-900/40 animate-pulse"></div>
       
       {/* Grid pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f15_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f15_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
@@ -83,7 +83,7 @@ export const Login: React.FC = () => {
 
       {/* Glow effects */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-[128px] animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-600/30 rounded-full blur-[128px] animate-pulse delay-1000"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-slate-900/40 rounded-full blur-[128px] animate-pulse delay-1000"></div>
 
       <div className="relative min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
@@ -96,7 +96,7 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-purple-200 leading-tight">
+              <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-500 leading-tight">
                 AutomIA
               </h1>
               <p className="text-2xl text-slate-300 font-light">
@@ -110,7 +110,7 @@ export const Login: React.FC = () => {
             {/* Features */}
             <div className="space-y-4 pt-8">
               <div className="flex items-start gap-4 group">
-                <div className="p-3 bg-indigo-500/10 backdrop-blur-sm rounded-xl border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-all">
+                <div className="p-3 bg-slate-900/60 backdrop-blur-sm rounded-xl border border-slate-700/80 group-hover:bg-slate-900 transition-all">
                   <Bot className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -120,8 +120,8 @@ export const Login: React.FC = () => {
               </div>
 
               <div className="flex items-start gap-4 group">
-                <div className="p-3 bg-purple-500/10 backdrop-blur-sm rounded-xl border border-purple-500/20 group-hover:bg-purple-500/20 transition-all">
-                  <Zap className="w-6 h-6 text-purple-400" />
+                <div className="p-3 bg-slate-900/60 backdrop-blur-sm rounded-xl border border-slate-700/80 group-hover:bg-slate-900 transition-all">
+                  <Zap className="w-6 h-6 text-slate-200" />
                 </div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">Automação Total</h3>
@@ -145,17 +145,17 @@ export const Login: React.FC = () => {
           <div className="w-full max-w-md mx-auto lg:mx-0 animate-fade-in delay-200">
             {/* Logo mobile */}
             <div className="lg:hidden text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl mb-4 shadow-xl shadow-primary/50">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-slate-900 rounded-2xl mb-4 shadow-xl shadow-primary/50">
                 <MessageSquare className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-purple-200">AutomIA</h1>
+              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-500">AutomIA</h1>
               <p className="text-slate-400 mt-2">Automação inteligente</p>
             </div>
 
             {/* Card de Login com Glassmorphism */}
             <div className="relative group">
               {/* Glow effect no hover */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-orange-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-slate-900 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
               
               <div className="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
                 <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 mb-6">
@@ -176,7 +176,7 @@ export const Login: React.FC = () => {
                       Nome
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-lg blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/10 to-slate-600/30 rounded-lg blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
                         <input
@@ -196,7 +196,7 @@ export const Login: React.FC = () => {
                     Email
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-lg blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-900/10 to-slate-600/30 rounded-lg blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
                       <input
@@ -216,7 +216,7 @@ export const Login: React.FC = () => {
                     Senha
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-lg blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-900/10 to-slate-600/30 rounded-lg blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
                       <input
@@ -243,9 +243,9 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="relative w-full py-3.5 bg-gradient-to-r from-primary to-orange-600 hover:from-primaryHover hover:to-orange-700 disabled:from-primary/50 disabled:to-orange-600/50 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group"
+                  className="relative w-full py-3.5 bg-gradient-to-r from-primary to-slate-900 hover:from-primaryHover hover:to-slate-700 disabled:from-primary/50 disabled:to-slate-800/60 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-orange-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-slate-700 opacity-0 group-hover:opacity-20 transition-opacity"></div>
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin relative z-10" />
@@ -303,12 +303,12 @@ export const Login: React.FC = () => {
                     setIsRegister(!isRegister);
                     setError('');
                   }}
-                  className="text-sm text-slate-400 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-400 hover:to-purple-400 transition-all duration-300 font-medium"
+                  className="text-sm text-slate-400 hover:text-slate-200 transition-all duration-300 font-medium"
                 >
                   {isRegister ? (
-                    <>Já tem uma conta? <span className="text-primary hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-400 hover:to-purple-400">Entrar</span></>
+                    <>Já tem uma conta? <span className="text-primary">Entrar</span></>
                   ) : (
-                    <>Não tem conta? <span className="text-primary hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-400 hover:to-purple-400">Criar conta</span></>
+                    <>Não tem conta? <span className="text-primary">Criar conta</span></>
                   )}
                 </button>
               </div>
