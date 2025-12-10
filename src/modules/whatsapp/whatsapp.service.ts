@@ -3,6 +3,7 @@ import { SessionManager } from './session.manager';
 import { ChatService } from '../chat/chat.service';
 import { TenantService } from '../tenant/tenant.service';
 import { AgentService } from '../agent/agent.service';
+import { MediaService } from '../ai/media/media.service';
 import { hasAuthState } from './auth-state-db';
 
 // Cache de mapeamento sessionId -> { tenantId, whatsappAccountId }
@@ -22,6 +23,7 @@ export class WhatsappService implements OnModuleInit {
     private readonly tenantService: TenantService,
     @Inject(forwardRef(() => AgentService))
     private readonly agentService: AgentService,
+    private readonly mediaService: MediaService,
   ) {}
 
   async onModuleInit() {
@@ -139,6 +141,8 @@ export class WhatsappService implements OnModuleInit {
         text = msgContent.imageMessage.caption;
       } else if (msgContent?.audioMessage) {
         type = 'audio';
+        // Tenta transcrever o áudio usando Gemini
+        text = await this.transcribeAudioMessage(sessionId, message);
       } else if (msgContent?.documentMessage) {
         type = 'file';
         text = msgContent.documentMessage.fileName;
@@ -311,6 +315,66 @@ export class WhatsappService implements OnModuleInit {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Transcreve uma mensagem de áudio usando Gemini
+   */
+  private async transcribeAudioMessage(sessionId: string, message: any): Promise<string | undefined> {
+    try {
+      const sock = this.sessionManager.getSession(sessionId);
+      if (!sock) {
+        this.logger.warn(`Sessão ${sessionId} não encontrada para download de áudio`);
+        return undefined;
+      }
+
+      // Import dinâmico do Baileys para download de mídia
+      const dynamicImport: (specifier: string) => Promise<any> = new Function(
+        'specifier',
+        'return import(specifier)',
+      ) as any;
+      const baileys = await dynamicImport('@whiskeysockets/baileys');
+      const { downloadMediaMessage } = baileys;
+
+      // Faz download do áudio
+      this.logger.log('Iniciando download do áudio para transcrição...');
+      const buffer = await downloadMediaMessage(
+        message,
+        'buffer',
+        {},
+        {
+          logger: undefined,
+          reuploadRequest: sock.updateMediaMessage,
+        },
+      );
+
+      if (!buffer) {
+        this.logger.warn('Não foi possível baixar o áudio');
+        return undefined;
+      }
+
+      // Converte para base64
+      const audioBase64 = buffer.toString('base64');
+      
+      // Determina o mimeType (geralmente ogg/opus no WhatsApp)
+      const audioInfo = message.message?.audioMessage;
+      const mimeType = audioInfo?.mimetype || 'audio/ogg; codecs=opus';
+
+      this.logger.log(`Áudio baixado (${buffer.length} bytes), transcrevendo com Gemini...`);
+
+      // Transcreve usando o MediaService (Gemini)
+      const transcription = await this.mediaService.transcribeAudio(audioBase64, mimeType);
+
+      if (transcription) {
+        this.logger.log(`🎤 Áudio transcrito: "${transcription.slice(0, 100)}..."`);
+        return `[Áudio transcrito]: ${transcription}`;
+      }
+
+      return undefined;
+    } catch (error: any) {
+      this.logger.error(`Erro ao transcrever áudio: ${error?.message || error}`);
+      return '[Áudio não transcrito]';
+    }
   }
 
   /**
