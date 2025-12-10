@@ -796,30 +796,13 @@ export const AgentConfig: React.FC<Props> = ({ onNavigate }) => {
             </div>
             <p className="text-[10px] text-zinc-600 mb-2">Enviada automaticamente para novos contatos</p>
             <textarea
-              rows={2}
+              rows={6}
               value={settings?.welcomeMessage?.message || ''}
               onChange={(e) => updateField('welcomeMessage', { ...settings!.welcomeMessage, message: e.target.value })}
               disabled={!settings?.welcomeMessage?.enabled}
               placeholder="Olá! 👋 Seja bem-vindo(a)!"
               className="w-full px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-400 resize-none disabled:opacity-40"
             />
-          </div>
-
-          {/* Teste */}
-          <div className="bg-zinc-900/50 border border-primary/20 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <MessageCircle className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-white">Teste seu Agente</span>
-            </div>
-            <p className="text-[10px] text-zinc-500 mb-3">
-              Use o Live Chat para simular conversas.
-            </p>
-            <button 
-              onClick={() => onNavigate?.('liveChat')}
-              className="w-full py-1.5 bg-primary hover:bg-primaryHover rounded text-xs font-medium text-white"
-            >
-              Ir para o Live Chat
-            </button>
           </div>
         </div>
       </div>
