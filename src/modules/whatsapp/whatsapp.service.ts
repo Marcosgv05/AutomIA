@@ -9,10 +9,29 @@ import { hasAuthState } from './auth-state-db';
 // Cache de mapeamento sessionId -> { tenantId, whatsappAccountId }
 type SessionInfo = { tenantId: string; whatsappAccountId: string };
 
+// Cache para batching de mensagens
+type PendingMessage = {
+  sessionId: string;
+  remoteJid: string;
+  message: any;
+  timestamp: number;
+};
+
+// Configurações de batching
+const BATCH_DELAY_MS = 10000; // 10 segundos para agrupar mensagens
+const AI_REACTIVATION_MS = 10 * 60 * 1000; // 10 minutos para reativar IA
+
 @Injectable()
 export class WhatsappService implements OnModuleInit {
   private readonly logger = new Logger(WhatsappService.name);
   private sessionInfoCache = new Map<string, SessionInfo>();
+
+  // Batching de mensagens: aguarda um tempo antes de processar
+  private pendingMessages = new Map<string, PendingMessage[]>(); // chatKey -> messages
+  private batchTimers = new Map<string, NodeJS.Timeout>(); // chatKey -> timer
+  
+  // Timers para reativação automática da IA
+  private aiReactivationTimers = new Map<string, NodeJS.Timeout>(); // chatId -> timer
 
   // Flag para habilitar/desabilitar respostas automáticas da IA
   private aiEnabled = true;
@@ -138,7 +157,10 @@ export class WhatsappService implements OnModuleInit {
         text = msgContent.extendedTextMessage.text;
       } else if (msgContent?.imageMessage) {
         type = 'image';
-        text = msgContent.imageMessage.caption;
+        // Tenta analisar a imagem usando Gemini
+        const caption = msgContent.imageMessage.caption || '';
+        const imageDescription = await this.analyzeImageMessage(sessionId, message, caption);
+        text = imageDescription || caption;
       } else if (msgContent?.audioMessage) {
         type = 'audio';
         // Tenta transcrever o áudio usando Gemini
@@ -164,45 +186,105 @@ export class WhatsappService implements OnModuleInit {
 
       this.logger.log(`Mensagem de ${customerWaId} salva: "${text?.slice(0, 50) || '[mídia]'}"`);
 
-      // Processa com o Agente de IA se habilitado
-      if (this.aiEnabled && sessionInfo) {
-        try {
-          const chat = await this.chatService.findOrCreateChat(
-            sessionInfo.tenantId,
-            sessionInfo.whatsappAccountId,
-            customerWaId,
-            pushName,
-          );
-
-          // Verifica se IA está pausada para este chat
-          if (chat.aiPaused) {
-            this.logger.log(`IA pausada para chat ${chat.id}, ignorando processamento`);
-            return;
-          }
-
-          // Prepara dados para o agente
-          const agentResponse = await this.agentService.processMessage({
-            tenantId: sessionInfo.tenantId,
-            chatId: chat.id,
-            customerName: pushName,
-            customerPhone: customerWaId,
-            messageType: type as 'text' | 'audio' | 'image',
-            text,
-          });
-
-          // Envia resposta se houver
-          if (agentResponse.shouldRespond && agentResponse.responseText) {
-            await this.sendMessage(sessionId, customerWaId, agentResponse.responseText);
-            this.logger.log(`Resposta automática enviada para ${customerWaId}`);
-          }
-        } catch (agentError: any) {
-          // Log do erro mas NÃO envia mensagem de erro ao cliente
-          // para evitar loops de erro
-          this.logger.error(`Erro no AgentService: ${agentError?.message || agentError}`);
+      // Processa com o Agente de IA se habilitado (usando batching)
+      if (this.aiEnabled && sessionInfo && text) {
+        const chatKey = `${sessionId}:${customerWaId}`;
+        
+        // Adiciona mensagem ao batch
+        const pendingMsg: PendingMessage = {
+          sessionId,
+          remoteJid,
+          message: { text, type, pushName, customerWaId },
+          timestamp: Date.now(),
+        };
+        
+        const existing = this.pendingMessages.get(chatKey) || [];
+        existing.push(pendingMsg);
+        this.pendingMessages.set(chatKey, existing);
+        
+        // Cancela timer anterior se existir
+        const existingTimer = this.batchTimers.get(chatKey);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
         }
+        
+        // Agenda processamento do batch
+        this.logger.debug(`Batching: ${existing.length} mensagem(s) de ${customerWaId}, aguardando ${BATCH_DELAY_MS / 1000}s...`);
+        const timer = setTimeout(() => {
+          this.processBatchedMessages(chatKey, sessionInfo, pushName);
+        }, BATCH_DELAY_MS);
+        
+        this.batchTimers.set(chatKey, timer);
       }
     } catch (error: any) {
       this.logger.error(`Erro ao salvar mensagem: ${error?.message || error}`);
+    }
+  }
+
+  /**
+   * Processa mensagens em batch após o delay
+   */
+  private async processBatchedMessages(chatKey: string, sessionInfo: SessionInfo, pushName: string) {
+    const messages = this.pendingMessages.get(chatKey);
+    if (!messages || messages.length === 0) return;
+
+    // Limpa as mensagens pendentes e o timer
+    this.pendingMessages.delete(chatKey);
+    this.batchTimers.delete(chatKey);
+
+    const [sessionId, customerWaId] = chatKey.split(':');
+    
+    // Combina todos os textos em um só
+    const combinedText = messages.map(m => m.message.text).join('\n');
+    const type = messages[messages.length - 1].message.type; // Usa o tipo da última mensagem
+
+    this.logger.log(`Processando batch de ${messages.length} mensagem(s) de ${customerWaId}`);
+
+    await this.processMessageWithAgent(sessionInfo, sessionId, customerWaId, pushName, type, combinedText);
+  }
+
+  /**
+   * Processa uma mensagem com o agente de IA
+   */
+  private async processMessageWithAgent(
+    sessionInfo: SessionInfo,
+    sessionId: string,
+    customerWaId: string,
+    pushName: string,
+    type: 'text' | 'audio' | 'image' | 'file',
+    text?: string,
+  ) {
+    try {
+      const chat = await this.chatService.findOrCreateChat(
+        sessionInfo.tenantId,
+        sessionInfo.whatsappAccountId,
+        customerWaId,
+        pushName,
+      );
+
+      // Verifica se IA está pausada para este chat
+      if (chat.aiPaused) {
+        this.logger.log(`IA pausada para chat ${chat.id}, ignorando processamento`);
+        return;
+      }
+
+      // Prepara dados para o agente
+      const agentResponse = await this.agentService.processMessage({
+        tenantId: sessionInfo.tenantId,
+        chatId: chat.id,
+        customerName: pushName,
+        customerPhone: customerWaId,
+        messageType: type as 'text' | 'audio' | 'image',
+        text,
+      });
+
+      // Envia resposta se houver
+      if (agentResponse.shouldRespond && agentResponse.responseText) {
+        await this.sendMessage(sessionId, customerWaId, agentResponse.responseText);
+        this.logger.log(`Resposta automática enviada para ${customerWaId}`);
+      }
+    } catch (agentError: any) {
+      this.logger.error(`Erro no AgentService: ${agentError?.message || agentError}`);
     }
   }
 
@@ -378,8 +460,72 @@ export class WhatsappService implements OnModuleInit {
   }
 
   /**
+   * Analisa uma imagem usando Gemini 2.5 Flash
+   */
+  private async analyzeImageMessage(sessionId: string, message: any, caption?: string): Promise<string | undefined> {
+    try {
+      const sock = this.sessionManager.getSession(sessionId);
+      if (!sock) {
+        this.logger.warn(`Sessão ${sessionId} não encontrada para download de imagem`);
+        return undefined;
+      }
+
+      // Import dinâmico do Baileys para download de mídia
+      const dynamicImport: (specifier: string) => Promise<any> = new Function(
+        'specifier',
+        'return import(specifier)',
+      ) as any;
+      const baileys = await dynamicImport('@whiskeysockets/baileys');
+      const { downloadMediaMessage } = baileys;
+
+      // Faz download da imagem
+      this.logger.log('Iniciando download da imagem para análise...');
+      const buffer = await downloadMediaMessage(
+        message,
+        'buffer',
+        {},
+        {
+          logger: undefined,
+          reuploadRequest: sock.updateMediaMessage,
+        },
+      );
+
+      if (!buffer) {
+        this.logger.warn('Não foi possível baixar a imagem');
+        return undefined;
+      }
+
+      // Converte para base64
+      const imageBase64 = buffer.toString('base64');
+      
+      // Determina o mimeType
+      const imageInfo = message.message?.imageMessage;
+      const mimeType = imageInfo?.mimetype || 'image/jpeg';
+
+      this.logger.log(`Imagem baixada (${buffer.length} bytes), analisando com Gemini...`);
+
+      // Analisa usando o MediaService (Gemini)
+      const context = caption ? `O usuário enviou esta imagem com a legenda: "${caption}"` : undefined;
+      const description = await this.mediaService.describeImage(imageBase64, mimeType, context);
+
+      if (description) {
+        this.logger.log(`🖼️ Imagem analisada: "${description.slice(0, 100)}..."`);
+        if (caption) {
+          return `[Imagem com legenda "${caption}"]: ${description}`;
+        }
+        return `[Imagem analisada]: ${description}`;
+      }
+
+      return caption || undefined;
+    } catch (error: any) {
+      this.logger.error(`Erro ao analisar imagem: ${error?.message || error}`);
+      return caption ? `[Imagem com legenda]: ${caption}` : '[Imagem não analisada]';
+    }
+  }
+
+  /**
    * Handler para mensagens enviadas manualmente pelo celular
-   * Pausa a IA automaticamente para esse chat
+   * Pausa a IA automaticamente para esse chat e agenda reativação
    */
   private async handleManualOutboundMessage(sessionId: string, remoteJid: string) {
     try {
@@ -400,6 +546,26 @@ export class WhatsappService implements OnModuleInit {
         await this.chatService.updateAiPaused(chat.id, true);
         this.logger.log(`IA pausada automaticamente para chat ${chat.id} (mensagem manual detectada)`);
       }
+
+      // Cancela timer de reativação anterior se existir
+      const existingTimer = this.aiReactivationTimers.get(chat.id);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      // Agenda reativação automática da IA após 10 minutos
+      const reactivationTimer = setTimeout(async () => {
+        try {
+          await this.chatService.updateAiPaused(chat.id, false);
+          this.logger.log(`🤖 IA reativada automaticamente para chat ${chat.id} (10 min sem mensagem manual)`);
+          this.aiReactivationTimers.delete(chat.id);
+        } catch (err: any) {
+          this.logger.error(`Erro ao reativar IA: ${err?.message || err}`);
+        }
+      }, AI_REACTIVATION_MS);
+
+      this.aiReactivationTimers.set(chat.id, reactivationTimer);
+      this.logger.debug(`Timer de reativação de IA agendado para ${AI_REACTIVATION_MS / 60000} min`);
     } catch (error: any) {
       this.logger.error(`Erro ao pausar IA por mensagem manual: ${error?.message || error}`);
     }

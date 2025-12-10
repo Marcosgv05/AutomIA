@@ -5,13 +5,14 @@ export class MediaService {
   private readonly logger = new Logger(MediaService.name);
   private readonly apiKey: string;
   private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  private readonly model = 'gemini-2.5-flash-preview-05-20'; // Modelo para áudio e imagem
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || '';
   }
 
   /**
-   * Transcreve um áudio usando Gemini
+   * Transcreve um áudio usando Gemini 2.5 Flash
    * O áudio deve estar em base64 ou ser uma URL acessível
    */
   async transcribeAudio(
@@ -20,7 +21,7 @@ export class MediaService {
   ): Promise<string> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/models/gemini-2.0-flash-exp:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -65,7 +66,7 @@ export class MediaService {
   }
 
   /**
-   * Descreve uma imagem usando Gemini
+   * Descreve uma imagem usando Gemini 2.5 Flash
    */
   async describeImage(
     imageBase64: string,
@@ -78,7 +79,7 @@ export class MediaService {
         : 'Descreva esta imagem de forma objetiva e útil.';
 
       const response = await fetch(
-        `${this.baseUrl}/models/gemini-2.0-flash-exp:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
