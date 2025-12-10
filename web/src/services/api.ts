@@ -321,6 +321,77 @@ export interface FaqItem {
   keywords: string[];
 }
 
+// Bloco: Identidade do Agente
+export interface AgentIdentity {
+  enabled: boolean;
+  name: string;
+  role: string;
+  company: string;
+  voiceTone: 'professional' | 'friendly' | 'empathetic' | 'direct';
+  informalityLevel: number;
+}
+
+// Bloco: Objetivo do Agente
+export interface AgentObjective {
+  enabled: boolean;
+  type: string;
+  meetingDuration: number;
+  description: string;
+}
+
+// Bloco: Regras de Comportamento
+export interface BehaviorRules {
+  enabled: boolean;
+  maxMessageLength: number;
+  useEmojis: boolean;
+  emojiLevel: 'none' | 'minimal' | 'moderate' | 'frequent';
+  restrictions: string[];
+  neverMention: string[];
+}
+
+// Bloco: Mensagens Padrão
+export interface StandardMessage {
+  id: string;
+  name: string;
+  trigger: string;
+  triggerKeywords: string[];
+  message: string;
+}
+
+export interface StandardMessages {
+  enabled: boolean;
+  messages: StandardMessage[];
+}
+
+// Bloco: Dados a Coletar
+export interface DataField {
+  id: string;
+  name: string;
+  label: string;
+  required: boolean;
+  format?: string;
+}
+
+export interface DataCollection {
+  enabled: boolean;
+  fields: DataField[];
+  defaultPhoneCountry: string;
+  defaultPhoneDDD: string;
+}
+
+// Bloco: Tratamento de Objeções
+export interface Objection {
+  id: string;
+  trigger: string;
+  keywords: string[];
+  response: string;
+}
+
+export interface ObjectionHandling {
+  enabled: boolean;
+  objections: Objection[];
+}
+
 export interface AgentSettings {
   agentName: string;
   voiceTone: 'professional' | 'friendly' | 'empathetic' | 'direct';
@@ -331,12 +402,21 @@ export interface AgentSettings {
       [key: string]: { start: string; end: string; enabled: boolean };
     };
     outsideHoursMessage: string;
+    timezone: string;
+    minAdvanceMinutes: number;
   };
   welcomeMessage: {
     enabled: boolean;
     message: string;
   };
   faqs: FaqItem[];
+  // Blocos modulares
+  identity?: AgentIdentity;
+  objective?: AgentObjective;
+  behaviorRules?: BehaviorRules;
+  standardMessages?: StandardMessages;
+  dataCollection?: DataCollection;
+  objectionHandling?: ObjectionHandling;
 }
 
 export const agentApi = {

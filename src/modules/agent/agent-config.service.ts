@@ -22,33 +22,52 @@ Seu objetivo é agendar consultas e responder dúvidas sobre nossos serviços co
       sun: { start: '09:00', end: '12:00', enabled: false },
     },
     outsideHoursMessage: 'Olá! 👋 No momento estamos fora do horário de atendimento. Nosso horário é de segunda a sexta, das 9h às 18h. Deixe sua mensagem que retornaremos assim que possível!',
+    timezone: 'America/Sao_Paulo',
+    minAdvanceMinutes: 50,
   },
-  // Mensagem de boas-vindas para novos contatos
   welcomeMessage: {
     enabled: true,
     message: 'Olá! 👋 Seja bem-vindo(a)! Sou o assistente virtual e estou aqui para ajudar. Como posso te atender hoje?',
   },
-  // Respostas rápidas / FAQ
-  faqs: [
-    {
-      id: '1',
-      question: 'Qual o horário de funcionamento?',
-      answer: 'Funcionamos de segunda a sexta, das 9h às 18h.',
-      keywords: ['horário', 'funcionamento', 'aberto', 'fecha', 'abre'],
-    },
-    {
-      id: '2',
-      question: 'Qual o endereço?',
-      answer: 'Nosso endereço é [configurar endereço aqui].',
-      keywords: ['endereço', 'localização', 'onde fica', 'localizar'],
-    },
-    {
-      id: '3',
-      question: 'Quais formas de pagamento?',
-      answer: 'Aceitamos dinheiro, PIX, cartão de débito e crédito.',
-      keywords: ['pagamento', 'pagar', 'pix', 'cartão', 'dinheiro'],
-    },
-  ],
+  faqs: [],
+  
+  // Blocos de configuração modular
+  identity: {
+    enabled: false,
+    name: '',
+    role: '',
+    company: '',
+    voiceTone: 'friendly',
+    informalityLevel: 5,
+  },
+  objective: {
+    enabled: false,
+    type: 'agendar reunião',
+    meetingDuration: 60,
+    description: '',
+  },
+  behaviorRules: {
+    enabled: false,
+    maxMessageLength: 300,
+    useEmojis: true,
+    emojiLevel: 'minimal',
+    restrictions: [],
+    neverMention: [],
+  },
+  standardMessages: {
+    enabled: false,
+    messages: [],
+  },
+  dataCollection: {
+    enabled: false,
+    fields: [],
+    defaultPhoneCountry: '+55',
+    defaultPhoneDDD: '',
+  },
+  objectionHandling: {
+    enabled: false,
+    objections: [],
+  },
 };
 
 @Injectable()
@@ -91,6 +110,13 @@ export class AgentConfigService {
         ...(savedSettings.welcomeMessage || {}),
       },
       faqs: savedSettings.faqs || DEFAULT_SETTINGS.faqs,
+      // Blocos modulares
+      identity: { ...DEFAULT_SETTINGS.identity!, ...(savedSettings.identity || {}) },
+      objective: { ...DEFAULT_SETTINGS.objective!, ...(savedSettings.objective || {}) },
+      behaviorRules: { ...DEFAULT_SETTINGS.behaviorRules!, ...(savedSettings.behaviorRules || {}) },
+      standardMessages: { ...DEFAULT_SETTINGS.standardMessages!, ...(savedSettings.standardMessages || {}) },
+      dataCollection: { ...DEFAULT_SETTINGS.dataCollection!, ...(savedSettings.dataCollection || {}) },
+      objectionHandling: { ...DEFAULT_SETTINGS.objectionHandling!, ...(savedSettings.objectionHandling || {}) },
     };
   }
 
