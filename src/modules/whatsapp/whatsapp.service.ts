@@ -268,6 +268,13 @@ export class WhatsappService implements OnModuleInit {
         return;
       }
 
+      // Verifica se o número está na blacklist
+      const isBlacklisted = await this.chatService.isBlacklisted(sessionInfo.tenantId, customerWaId);
+      if (isBlacklisted) {
+        this.logger.log(`🚫 Número ${customerWaId} está na blacklist, ignorando processamento`);
+        return;
+      }
+
       // Prepara dados para o agente
       const agentResponse = await this.agentService.processMessage({
         tenantId: sessionInfo.tenantId,

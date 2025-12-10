@@ -173,4 +173,88 @@ export class ChatService {
       },
     });
   }
+
+  // ========== BLACKLIST ==========
+
+  /**
+   * Verifica se um número está na blacklist
+   */
+  async isBlacklisted(tenantId: string, phoneNumber: string): Promise<boolean> {
+    // Normaliza o número (remove caracteres não numéricos)
+    const normalizedPhone = phoneNumber.replace(/\D/g, '');
+    
+    const entry = await this.prisma.blacklist.findUnique({
+      where: {
+        tenantId_phoneNumber: {
+          tenantId,
+          phoneNumber: normalizedPhone,
+        },
+      },
+    });
+    
+    return !!entry;
+  }
+
+  /**
+   * Adiciona um número à blacklist
+   */
+  async addToBlacklist(tenantId: string, phoneNumber: string, reason?: string, blockedBy?: string) {
+    const normalizedPhone = phoneNumber.replace(/\D/g, '');
+    
+    const entry = await this.prisma.blacklist.upsert({
+      where: {
+        tenantId_phoneNumber: {
+          tenantId,
+          phoneNumber: normalizedPhone,
+        },
+      },
+      update: {
+        reason,
+        blockedBy,
+        updatedAt: new Date(),
+      },
+      create: {
+        tenantId,
+        phoneNumber: normalizedPhone,
+        reason,
+        blockedBy,
+      },
+    });
+    
+    this.logger.log(`Número ${normalizedPhone} adicionado à blacklist do tenant ${tenantId}`);
+    return entry;
+  }
+
+  /**
+   * Remove um número da blacklist
+   */
+  async removeFromBlacklist(tenantId: string, phoneNumber: string) {
+    const normalizedPhone = phoneNumber.replace(/\D/g, '');
+    
+    try {
+      await this.prisma.blacklist.delete({
+        where: {
+          tenantId_phoneNumber: {
+            tenantId,
+            phoneNumber: normalizedPhone,
+          },
+        },
+      });
+      
+      this.logger.log(`Número ${normalizedPhone} removido da blacklist do tenant ${tenantId}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Lista todos os números na blacklist de um tenant
+   */
+  async listBlacklist(tenantId: string) {
+    return this.prisma.blacklist.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

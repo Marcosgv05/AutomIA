@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ChatService } from './chat.service';
 
 @Controller('chats')
@@ -66,5 +66,71 @@ export class ChatController {
       return { chat };
     }
     return { error: 'Nenhum campo para atualizar' };
+  }
+
+  // ========== BLACKLIST ==========
+
+  /**
+   * Lista números na blacklist de um tenant
+   * GET /chats/blacklist?tenantId=xxx
+   */
+  @Get('blacklist')
+  async listBlacklist(@Query('tenantId') tenantId: string) {
+    if (!tenantId) {
+      return { error: 'tenantId é obrigatório' };
+    }
+    const blacklist = await this.chatService.listBlacklist(tenantId);
+    return { blacklist };
+  }
+
+  /**
+   * Adiciona um número à blacklist
+   * POST /chats/blacklist
+   */
+  @Post('blacklist')
+  async addToBlacklist(
+    @Body() body: { tenantId: string; phoneNumber: string; reason?: string },
+  ) {
+    if (!body.tenantId || !body.phoneNumber) {
+      return { error: 'tenantId e phoneNumber são obrigatórios' };
+    }
+    const entry = await this.chatService.addToBlacklist(
+      body.tenantId,
+      body.phoneNumber,
+      body.reason,
+    );
+    return { success: true, entry };
+  }
+
+  /**
+   * Remove um número da blacklist
+   * DELETE /chats/blacklist/:phoneNumber?tenantId=xxx
+   */
+  @Delete('blacklist/:phoneNumber')
+  async removeFromBlacklist(
+    @Param('phoneNumber') phoneNumber: string,
+    @Query('tenantId') tenantId: string,
+  ) {
+    if (!tenantId) {
+      return { error: 'tenantId é obrigatório' };
+    }
+    const removed = await this.chatService.removeFromBlacklist(tenantId, phoneNumber);
+    return { success: removed };
+  }
+
+  /**
+   * Verifica se um número está na blacklist
+   * GET /chats/blacklist/check/:phoneNumber?tenantId=xxx
+   */
+  @Get('blacklist/check/:phoneNumber')
+  async checkBlacklist(
+    @Param('phoneNumber') phoneNumber: string,
+    @Query('tenantId') tenantId: string,
+  ) {
+    if (!tenantId) {
+      return { error: 'tenantId é obrigatório' };
+    }
+    const isBlacklisted = await this.chatService.isBlacklisted(tenantId, phoneNumber);
+    return { phoneNumber, isBlacklisted };
   }
 }
