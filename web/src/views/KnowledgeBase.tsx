@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from '../components/ui/Card';
 import { UploadCloud, FileText, Trash2, CheckCircle2, Loader2, Plus, Search, AlertCircle, FolderOpen } from 'lucide-react';
 import { tenantApi, knowledgeApi, Document, KnowledgeBase as KBType } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 
 export const KnowledgeBase: React.FC = () => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [knowledgeBases, setKnowledgeBases] = useState<KBType[]>([]);
   const [selectedKB, setSelectedKB] = useState<KBType | null>(null);
@@ -158,8 +154,8 @@ export const KnowledgeBase: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Base de Conhecimento</h1>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Gerencie os documentos que a IA utiliza para responder seus clientes.</p>
+          <h1 className={`text-2xl font-bold ${true ? 'text-slate-100' : 'text-slate-900'}`}>Base de Conhecimento</h1>
+          <p className={`mt-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Gerencie os documentos que a IA utiliza para responder seus clientes.</p>
         </div>
         <div className="flex gap-2">
           {knowledgeBases.length === 0 && (
@@ -191,8 +187,8 @@ export const KnowledgeBase: React.FC = () => {
       )}
 
       {/* Busca RAG */}
-      <Card>
-        <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Testar Busca (RAG)</h3>
+      <div>
+        <h3 className={`text-lg font-semibold mb-4 ${true ? 'text-slate-200' : 'text-slate-800'}`}>Testar Busca (RAG)</h3>
         <div className="flex gap-2">
           <input
             type="text"
@@ -201,7 +197,7 @@ export const KnowledgeBase: React.FC = () => {
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Digite uma pergunta para buscar nos documentos..."
             className={`flex-1 rounded-lg px-4 py-2 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-              isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+              true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
             }`}
           />
           <button
@@ -228,13 +224,13 @@ export const KnowledgeBase: React.FC = () => {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Upload Area */}
       <div
         onClick={() => fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-all cursor-pointer ${
-          isDark 
+          true 
             ? 'border-slate-700 hover:border-indigo-500/50 hover:bg-indigo-500/10' 
             : 'border-slate-300 hover:border-indigo-400 hover:bg-indigo-50'
         }`}
@@ -246,35 +242,35 @@ export const KnowledgeBase: React.FC = () => {
           onChange={handleFileUpload}
           className="hidden"
         />
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
-          <UploadCloud className={`w-8 h-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${true ? 'bg-slate-800' : 'bg-slate-200'}`}>
+          <UploadCloud className={`w-8 h-8 ${true ? 'text-slate-400' : 'text-slate-500'}`} />
         </div>
-        <h3 className={`text-lg font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Arraste e solte arquivos aqui</h3>
+        <h3 className={`text-lg font-semibold ${true ? 'text-slate-200' : 'text-slate-700'}`}>Arraste e solte arquivos aqui</h3>
         <p className="text-slate-500 mt-1 mb-4">Suporte para TXT e MD (ou clique para selecionar)</p>
       </div>
 
       {/* Tabela de Documentos */}
-      <Card noPadding>
+      <div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className={`border-b ${isDark ? 'bg-slate-800/50 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
+            <thead className={`border-b ${true ? 'bg-slate-800/50 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
               <tr>
-                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Título</th>
-                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Tipo</th>
-                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Data</th>
-                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Status</th>
-                <th className={`px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Ações</th>
+                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${true ? 'text-slate-400' : 'text-slate-600'}`}>Título</th>
+                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${true ? 'text-slate-400' : 'text-slate-600'}`}>Tipo</th>
+                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${true ? 'text-slate-400' : 'text-slate-600'}`}>Data</th>
+                <th className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider ${true ? 'text-slate-400' : 'text-slate-600'}`}>Status</th>
+                <th className={`px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${true ? 'text-slate-400' : 'text-slate-600'}`}>Ações</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-200'}`}>
+            <tbody className={`divide-y ${true ? 'divide-slate-800' : 'divide-slate-200'}`}>
               {documents.map((doc) => (
-                <tr key={doc.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50'}`}>
+                <tr key={doc.id} className={`transition-colors ${true ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50'}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
-                        <FileText className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                      <div className={`p-2 rounded-lg border ${true ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                        <FileText className={`w-5 h-5 ${true ? 'text-slate-400' : 'text-slate-500'}`} />
                       </div>
-                      <span className={`font-medium ${isDark ? 'text-slate-300' : 'text-slate-900'}`}>{doc.title}</span>
+                      <span className={`font-medium ${true ? 'text-slate-300' : 'text-slate-900'}`}>{doc.title}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500">{doc.sourceType.toUpperCase()}</td>
@@ -318,7 +314,7 @@ export const KnowledgeBase: React.FC = () => {
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Modal Adicionar Documento */}
       {showAddModal && (

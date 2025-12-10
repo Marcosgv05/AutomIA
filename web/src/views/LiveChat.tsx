@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Card } from '../components/ui/Card';
-import { Search, MoreVertical, Send, User, Bot, Mic, Paperclip, Power, CheckCheck, MessageSquare, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Search, MoreVertical, Send, User, Bot, Power, CheckCheck, MessageSquare, Loader2, RefreshCw, AlertCircle, Paperclip, Mic } from 'lucide-react';
 import { tenantApi, chatApi, whatsappApi, Chat, Message } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 
 export const LiveChat: React.FC = () => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
@@ -207,10 +203,10 @@ export const LiveChat: React.FC = () => {
       )}
 
       {/* Sidebar List */}
-      <Card className="w-1/3 flex flex-col h-full" noPadding>
-        <div className={`p-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+      <div className="w-1/3 flex flex-col h-full" >
+        <div className={`p-4 border-b ${true ? 'border-slate-800' : 'border-slate-200'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-lg font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Conversas</h2>
+            <h2 className={`text-lg font-bold ${true ? 'text-slate-100' : 'text-slate-900'}`}>Conversas</h2>
             <span className="text-xs text-slate-500">{chats.length} chats</span>
           </div>
           <div className="relative">
@@ -221,7 +217,7 @@ export const LiveChat: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar cliente..."
               className={`w-full pl-9 pr-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500 transition-all ${
-                isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
               }`}
             />
           </div>
@@ -241,14 +237,14 @@ export const LiveChat: React.FC = () => {
                   key={chat.id}
                   onClick={() => setSelectedChatId(chat.id)}
                   className={`p-4 border-b cursor-pointer transition-colors ${
-                    isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-200 hover:bg-slate-100'
+                    true ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-200 hover:bg-slate-100'
                   } ${selectedChatId === chat.id ? 'bg-indigo-500/10' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <h3 className={`font-semibold text-sm ${
                       selectedChatId === chat.id 
                         ? 'text-indigo-500' 
-                        : isDark ? 'text-slate-200' : 'text-slate-900'
+                        : true ? 'text-slate-200' : 'text-slate-900'
                     }`}>
                       {chat.customerName || chat.customerWaId}
                     </h3>
@@ -271,24 +267,24 @@ export const LiveChat: React.FC = () => {
             })
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Chat Area */}
-      <Card className="flex-1 flex flex-col h-full overflow-hidden relative" noPadding>
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative" >
         {activeChat ? (
           <>
             {/* Header */}
             <div className={`p-4 border-b flex justify-between items-center z-10 shadow-sm ${
-              isDark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'
+              true ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'
             }`}>
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border ${
-                  isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-indigo-100 text-indigo-600 border-indigo-200'
+                  true ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-indigo-100 text-indigo-600 border-indigo-200'
                 }`}>
                   {(activeChat.customerName || activeChat.customerWaId).substring(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className={`font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{activeChat.customerName || 'Cliente'}</h3>
+                  <h3 className={`font-bold ${true ? 'text-slate-100' : 'text-slate-900'}`}>{activeChat.customerName || 'Cliente'}</h3>
                   <p className="text-xs text-slate-500">+{activeChat.customerWaId}</p>
                 </div>
               </div>
@@ -317,7 +313,7 @@ export const LiveChat: React.FC = () => {
 
             {activeChat.aiPaused && (
               <div className={`text-xs py-1.5 text-center font-medium border-b ${
-                isDark 
+                true 
                   ? 'bg-amber-900/20 text-amber-200 border-amber-500/20' 
                   : 'bg-amber-100 text-amber-800 border-amber-300'
               }`}>
@@ -326,7 +322,7 @@ export const LiveChat: React.FC = () => {
             )}
 
             {/* Messages */}
-            <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+            <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${true ? 'bg-slate-950' : 'bg-slate-50'}`}>
               {loadingMessages && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-32">
                   <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
@@ -345,23 +341,23 @@ export const LiveChat: React.FC = () => {
                       <div className={`flex max-w-[70%] gap-2 ${isInbound ? 'flex-row' : 'flex-row-reverse'}`}>
                         <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs shadow-sm mt-1 ${
                           isInbound 
-                            ? isDark ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-slate-200 text-slate-600 border border-slate-300'
+                            ? true ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-slate-200 text-slate-600 border border-slate-300'
                             : isAI ? 'bg-indigo-100 text-indigo-600 border border-indigo-200'
-                            : isDark ? 'bg-slate-700 text-white' : 'bg-slate-600 text-white'
+                            : true ? 'bg-slate-700 text-white' : 'bg-slate-600 text-white'
                         }`}>
                           {isInbound ? <User className="w-4 h-4" /> : isAI ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                         </div>
 
                         <div className={`p-3.5 rounded-2xl text-sm shadow-sm relative group ${
                           isInbound
-                            ? isDark 
+                            ? true 
                               ? 'bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-none' 
                               : 'bg-white text-slate-900 border border-slate-300 rounded-tl-none'
                             : isAI
-                            ? isDark 
+                            ? true 
                               ? 'bg-indigo-500/10 text-slate-200 border border-indigo-500/20 rounded-tr-none'
                               : 'bg-indigo-100 text-slate-900 border border-indigo-200 rounded-tr-none'
-                            : isDark 
+                            : true 
                               ? 'bg-slate-700 text-white rounded-tr-none'
                               : 'bg-slate-600 text-white rounded-tr-none'
                         }`}>
@@ -381,9 +377,9 @@ export const LiveChat: React.FC = () => {
             </div>
 
             {/* Input Area */}
-            <div className={`p-4 border-t ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <div className={`p-4 border-t ${true ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
               <form onSubmit={handleSendMessage} className="flex items-end gap-2">
-                <button type="button" className={`p-2 rounded-lg transition-colors ${isDark ? 'text-slate-500 hover:text-indigo-400 hover:bg-slate-800' : 'text-slate-400 hover:text-indigo-500 hover:bg-slate-100'}`}>
+                <button type="button" className={`p-2 rounded-lg transition-colors ${true ? 'text-slate-500 hover:text-indigo-400 hover:bg-slate-800' : 'text-slate-400 hover:text-indigo-500 hover:bg-slate-100'}`}>
                   <Paperclip className="w-5 h-5" />
                 </button>
                 <div className="flex-1 relative">
@@ -393,7 +389,7 @@ export const LiveChat: React.FC = () => {
                     placeholder={!sessionId ? 'Conecte o WhatsApp primeiro...' : 'Digite uma mensagem...'}
                     disabled={!sessionId}
                     className={`w-full p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-500 transition-all text-sm max-h-32 disabled:opacity-50 ${
-                      isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-slate-100 border border-slate-300 text-slate-900'
+                      true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-slate-100 border border-slate-300 text-slate-900'
                     }`}
                   />
                 </div>
@@ -406,7 +402,7 @@ export const LiveChat: React.FC = () => {
                     <Send className="w-5 h-5" />
                   </button>
                 ) : (
-                  <button type="button" className={`p-3 rounded-xl transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
+                  <button type="button" className={`p-3 rounded-xl transition-colors ${true ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}>
                     <Mic className="w-5 h-5" />
                   </button>
                 )}
@@ -419,14 +415,14 @@ export const LiveChat: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className={`flex flex-1 flex-col items-center justify-center h-full min-h-[90vh] w-full gap-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
+          <div className={`flex flex-1 flex-col items-center justify-center h-full min-h-[90vh] w-full gap-3 ${true ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${true ? 'bg-slate-800' : 'bg-slate-200'}`}>
               <MessageSquare className="w-8 h-8 opacity-60" />
             </div>
             <p className="text-sm">Selecione uma conversa para começar</p>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 };

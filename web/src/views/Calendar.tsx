@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '../components/ui/Card';
 import { 
   Calendar as CalendarIcon, 
   Plus, 
@@ -20,7 +19,6 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface CalendarEvent {
   id: string;
@@ -33,8 +31,6 @@ interface CalendarEvent {
 }
 
 export const Calendar: React.FC = () => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<GoogleAccount[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -238,8 +234,8 @@ export const Calendar: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Agenda</h1>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Gerencie seus agendamentos do Google Calendar.</p>
+          <h1 className={`text-2xl font-bold ${true ? 'text-slate-100' : 'text-slate-900'}`}>Agenda</h1>
+          <p className={`mt-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Gerencie seus agendamentos do Google Calendar.</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -269,8 +265,8 @@ export const Calendar: React.FC = () => {
       )}
 
       {/* Contas Google */}
-      <Card>
-        <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Contas Google Conectadas</h3>
+      <div>
+        <h3 className={`text-lg font-semibold mb-4 ${true ? 'text-slate-200' : 'text-slate-800'}`}>Contas Google Conectadas</h3>
         
         {accounts.length === 0 ? (
           <div className="text-center py-8">
@@ -281,14 +277,14 @@ export const Calendar: React.FC = () => {
         ) : (
           <div className="space-y-3">
             {accounts.map((account) => (
-              <div key={account.id} className={`rounded-lg p-4 border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+              <div key={account.id} className={`rounded-lg p-4 border ${true ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center">
                       <Mail className="w-5 h-5 text-indigo-500" />
                     </div>
                     <div>
-                      <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>{account.email}</p>
+                      <p className={`font-medium ${true ? 'text-slate-200' : 'text-slate-900'}`}>{account.email}</p>
                       <p className="text-xs text-slate-500">
                         {account.calendars.length} calendário(s) sincronizado(s)
                       </p>
@@ -304,7 +300,7 @@ export const Calendar: React.FC = () => {
                 </div>
                 
                 {account.calendars.length > 0 && (
-                  <div className={`mt-3 pt-3 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <div className={`mt-3 pt-3 border-t ${true ? 'border-slate-700' : 'border-slate-200'}`}>
                     <p className="text-xs text-slate-500 mb-2">Calendários:</p>
                     <div className="flex flex-wrap gap-2">
                       {account.calendars.map((cal) => (
@@ -313,7 +309,7 @@ export const Calendar: React.FC = () => {
                           className={`px-2 py-1 rounded text-xs ${
                             cal.isDefault
                               ? 'bg-indigo-500/20 text-indigo-500'
-                              : isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-200 text-slate-600'
+                              : true ? 'bg-slate-700 text-slate-400' : 'bg-slate-200 text-slate-600'
                           }`}
                         >
                           {cal.summary || cal.calendarId}
@@ -327,23 +323,23 @@ export const Calendar: React.FC = () => {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Calendário Visual */}
       {allCalendars.length > 0 && (
-        <Card>
+        <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Calendário</h3>
+            <h3 className={`text-lg font-semibold ${true ? 'text-slate-200' : 'text-slate-800'}`}>Calendário</h3>
             <div className="flex items-center gap-4">
               {/* Legenda */}
               <div className="flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded bg-blue-500"></div>
-                  <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Seus eventos</span>
+                  <span className={true ? 'text-slate-400' : 'text-slate-600'}>Seus eventos</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded bg-violet-500"></div>
-                  <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Agendados pela IA</span>
+                  <span className={true ? 'text-slate-400' : 'text-slate-600'}>Agendados pela IA</span>
                 </div>
               </div>
               {/* Seletor de calendário */}
@@ -351,7 +347,7 @@ export const Calendar: React.FC = () => {
                 value={activeCalendarId}
                 onChange={(e) => setActiveCalendarId(e.target.value)}
                 className={`rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                  true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                 }`}
               >
                 {allCalendars.map((cal) => (
@@ -363,7 +359,7 @@ export const Calendar: React.FC = () => {
             </div>
           </div>
 
-          <div className={`calendar-wrapper rounded-lg p-4 ${isDark ? 'bg-slate-800/30' : 'bg-slate-50'}`}>
+          <div className={`calendar-wrapper rounded-lg p-4 ${true ? 'bg-slate-800/30' : 'bg-slate-50'}`}>
             <FullCalendar
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
@@ -392,12 +388,12 @@ export const Calendar: React.FC = () => {
               }}
             />
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Agendamentos */}
-      <Card>
-        <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Agendamentos Recentes</h3>
+      <div>
+        <h3 className={`text-lg font-semibold mb-4 ${true ? 'text-slate-200' : 'text-slate-800'}`}>Agendamentos Recentes</h3>
         
         {appointments.length === 0 ? (
           <div className="text-center py-8">
@@ -412,8 +408,8 @@ export const Calendar: React.FC = () => {
                 className={`rounded-lg p-4 border ${
                   apt.status === 'canceled' 
                     ? 'border-red-500/20 opacity-60' 
-                    : isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'
-                } ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}
+                    : true ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'
+                } ${true ? 'bg-slate-800/50' : 'bg-slate-50'}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -425,12 +421,12 @@ export const Calendar: React.FC = () => {
                       ) : (
                         <Clock className="w-4 h-4 text-yellow-500" />
                       )}
-                      <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                      <span className={`font-medium ${true ? 'text-slate-200' : 'text-slate-900'}`}>
                         {apt.payload?.summary || 'Sem título'}
                       </span>
                     </div>
                     
-                    <div className={`flex items-center gap-4 text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <div className={`flex items-center gap-4 text-sm mt-2 ${true ? 'text-slate-400' : 'text-slate-600'}`}>
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="w-4 h-4" />
                         {formatDateTime(apt.startTime)}
@@ -474,22 +470,22 @@ export const Calendar: React.FC = () => {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Modal Criar Evento */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className={`rounded-xl p-6 w-full max-w-md mx-4 border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Novo Agendamento</h2>
+          <div className={`rounded-xl p-6 w-full max-w-md mx-4 border ${true ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <h2 className={`text-xl font-bold mb-4 ${true ? 'text-slate-100' : 'text-slate-900'}`}>Novo Agendamento</h2>
 
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Calendário</label>
+                <label className={`block text-sm font-medium mb-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Calendário</label>
                 <select
                   value={selectedCalendarId}
                   onChange={(e) => setSelectedCalendarId(e.target.value)}
                   className={`w-full rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                    isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                    true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                   }`}
                 >
                   <option value="">Selecione um calendário</option>
@@ -502,63 +498,63 @@ export const Calendar: React.FC = () => {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Título</label>
+                <label className={`block text-sm font-medium mb-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Título</label>
                 <input
                   type="text"
                   value={eventSummary}
                   onChange={(e) => setEventSummary(e.target.value)}
                   placeholder="Ex: Consulta com Dr. João"
                   className={`w-full rounded-lg px-4 py-2 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                    isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                    true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                   }`}
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Descrição</label>
+                <label className={`block text-sm font-medium mb-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Descrição</label>
                 <textarea
                   value={eventDescription}
                   onChange={(e) => setEventDescription(e.target.value)}
                   placeholder="Detalhes do agendamento..."
                   rows={3}
                   className={`w-full rounded-lg px-4 py-2 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${
-                    isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                    true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                   }`}
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Data</label>
+                <label className={`block text-sm font-medium mb-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Data</label>
                 <input
                   type="date"
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
                   className={`w-full rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                    isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                    true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                   }`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Início</label>
+                  <label className={`block text-sm font-medium mb-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Início</label>
                   <input
                     type="time"
                     value={eventStartTime}
                     onChange={(e) => setEventStartTime(e.target.value)}
                     className={`w-full rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                      true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                     }`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Fim</label>
+                  <label className={`block text-sm font-medium mb-1 ${true ? 'text-slate-400' : 'text-slate-600'}`}>Fim</label>
                   <input
                     type="time"
                     value={eventEndTime}
                     onChange={(e) => setEventEndTime(e.target.value)}
                     className={`w-full rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      isDark ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
+                      true ? 'bg-slate-800 border border-slate-700 text-slate-200' : 'bg-white border border-slate-300 text-slate-900'
                     }`}
                   />
                 </div>
@@ -568,7 +564,7 @@ export const Calendar: React.FC = () => {
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowCreateModal(false)}
-                className={`px-4 py-2 transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-4 py-2 transition-colors ${true ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 Cancelar
               </button>
