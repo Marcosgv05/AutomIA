@@ -101,11 +101,14 @@ export const Connection: React.FC = () => {
         if (backendStatus === 'connected') {
           setStatus('connected');
           setQrUrl(null);
+          stopPolling();
         } else if (backendStatus === 'connecting' || backendStatus === 'waiting_qr') {
           setStatus(backendStatus as ConnectionStatus);
         } else {
           // 'disconnected', 'not_found', 'logged_out', etc → trata como desconectado
           setStatus('disconnected');
+          setQrUrl(null);
+          stopPolling();
         }
       } catch {
         // ignora erros de rede
@@ -185,7 +188,7 @@ export const Connection: React.FC = () => {
 
         {/* QR Code Column */}
         <div className="flex justify-center">
-          <div className="relative group cursor-pointer" onClick={status === 'disconnected' ? handleConnect : undefined}>
+          <div className="relative group cursor-pointer" onClick={(status === 'disconnected' || (status === 'waiting_qr' && !qrUrl)) ? handleConnect : undefined}>
             
             {/* Decorative Frame */}
             <div className="absolute -inset-4 border border-zinc-800 rounded-xl z-0"></div>
@@ -224,8 +227,8 @@ export const Connection: React.FC = () => {
                       alt="QR Code" 
                       className="w-full h-full transition-all duration-700 opacity-100" 
                     />
-                  ) : status === 'disconnected' ? (
-                    <div className="flex flex-col items-center justify-center">
+                  ) : status === 'disconnected' || (status === 'waiting_qr' && !qrUrl) ? (
+                    <div className="flex flex-col items-center justify-center cursor-pointer" onClick={handleConnect}>
                       <RefreshCw className="text-zinc-400 mb-2" size={24} />
                       <span className="text-xs font-mono text-zinc-500">Clique para conectar</span>
                     </div>
