@@ -8,20 +8,16 @@ import { PrismaClient } from '@prisma/client';
 import { Logger } from '@nestjs/common';
 
 // Import dinâmico para Baileys (ES Module)
+// Usar Function() para evitar que ts-node-dev transforme import() em require()
 let initAuthCreds: any, BufferJSON: any;
-let BaileysTypes: any;
+
+const dynamicImport = new Function('specifier', 'return import(specifier)');
 
 const loadBaileys = async () => {
   if (!initAuthCreds) {
-    const baileys = await import('@whiskeysockets/baileys');
+    const baileys = await dynamicImport('@whiskeysockets/baileys');
     initAuthCreds = baileys.initAuthCreds;
     BufferJSON = baileys.BufferJSON;
-    
-    // Guardar tipos para uso posterior
-    BaileysTypes = {
-      AuthenticationCreds: baileys.AuthenticationCreds,
-      SignalDataTypeMap: baileys.SignalDataTypeMap,
-    };
   }
 };
 
