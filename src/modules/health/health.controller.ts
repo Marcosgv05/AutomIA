@@ -1,12 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject, Optional } from '@nestjs/common';
 import { PrismaService } from '../../infra/database/prisma.service';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Optional() @Inject(PrismaService) private readonly prisma?: PrismaService
+  ) {}
 
   /**
-   * Healthcheck simples
+   * Healthcheck simples - NÃO depende de nenhum serviço
    * GET /health
    */
   @Get()
@@ -15,7 +17,7 @@ export class HealthController {
       status: 'ok',
       service: 'AutomIA Backend',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0',
+      uptime: process.uptime(),
     };
   }
 
@@ -30,8 +32,12 @@ export class HealthController {
     // Verifica banco de dados
     const dbStart = Date.now();
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      checks.database = { status: 'healthy', latency: Date.now() - dbStart };
+      if (this.prisma) {
+        await this.prisma.$queryRaw`SELECT 1`;
+        checks.database = { status: 'healthy', latency: Date.now() - dbStart };
+      } else {
+        checks.database = { status: 'not_available', error: 'Prisma not injected' };
+      }
     } catch (error: any) {
       checks.database = { status: 'unhealthy', error: error?.message };
     }
