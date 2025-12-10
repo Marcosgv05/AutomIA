@@ -349,3 +349,32 @@ export const agentApi = {
       settings,
     }),
 };
+
+// ==================== Blacklist ====================
+export interface BlacklistEntry {
+  id: string;
+  phoneNumber: string;
+  reason?: string;
+  blockedBy?: string;
+  createdAt: string;
+}
+
+export const blacklistApi = {
+  list: (tenantId: string) =>
+    api.get<{ blacklist: BlacklistEntry[] }>(`/chats/blacklist?tenantId=${tenantId}`),
+
+  add: (tenantId: string, phoneNumber: string, reason?: string) =>
+    api.post<{ success: boolean; entry: BlacklistEntry }>('/chats/blacklist', {
+      tenantId,
+      phoneNumber,
+      reason,
+    }),
+
+  remove: (tenantId: string, phoneNumber: string) =>
+    api.delete(`/chats/blacklist/${encodeURIComponent(phoneNumber)}?tenantId=${tenantId}`),
+
+  check: (tenantId: string, phoneNumber: string) =>
+    api.get<{ phoneNumber: string; isBlacklisted: boolean }>(
+      `/chats/blacklist/check/${encodeURIComponent(phoneNumber)}?tenantId=${tenantId}`
+    ),
+};

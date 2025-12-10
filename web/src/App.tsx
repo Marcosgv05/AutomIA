@@ -9,6 +9,7 @@ import { KnowledgeBase } from './views/KnowledgeBase';
 import { LiveChat } from './views/LiveChat';
 import { Calendar } from './views/Calendar';
 import { AgentConfig } from './views/AgentConfig';
+import { Blacklist } from './views/Blacklist';
 import { GoogleCallback } from './views/GoogleCallback';
 import { View } from './types';
 import { Loader2 } from 'lucide-react';
@@ -56,6 +57,8 @@ function AppContent() {
         return <LiveChat />;
       case 'calendar':
         return <Calendar />;
+      case 'blacklist':
+        return <Blacklist />;
       case 'config':
         return <AgentConfig onNavigate={(view) => setCurrentView(view as View)} />;
       default:

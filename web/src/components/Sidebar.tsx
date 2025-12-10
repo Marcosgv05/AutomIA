@@ -7,7 +7,8 @@ import {
   QrCode,
   Calendar,
   LogOut,
-  Command
+  Command,
+  ShieldBan
 } from 'lucide-react';
 import { View, NavItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,6 +24,7 @@ const navItems: NavItem[] = [
   { id: 'knowledge', label: 'Base de Conhecimento', icon: DatabaseZap, inDevelopment: false },
   { id: 'connection', label: 'Dispositivos', icon: QrCode, inDevelopment: false },
   { id: 'calendar', label: 'Agenda', icon: Calendar, inDevelopment: false },
+  { id: 'blacklist', label: 'Blacklist', icon: ShieldBan, inDevelopment: false },
   { id: 'config', label: 'Configuração do Agente', icon: SlidersHorizontal, inDevelopment: false },
 ];
 

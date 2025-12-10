@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type View = 'dashboard' | 'connection' | 'knowledge' | 'chat' | 'calendar' | 'config';
+export type View = 'dashboard' | 'connection' | 'knowledge' | 'chat' | 'calendar' | 'config' | 'blacklist';
 
 export interface NavItem {
   id: View;
