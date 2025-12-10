@@ -63,42 +63,59 @@ export class WhatsappService implements OnModuleInit {
 
     this.logger.log('WhatsappService inicializado com handlers de mensagens e conexão');
 
-    // Reconecta sessões existentes automaticamente
-    await this.reconnectExistingSessions();
+    // Reconecta sessões existentes em background (não bloqueia startup)
+    // Delay de 5 segundos para garantir que tudo está pronto
+    setTimeout(() => {
+      this.reconnectExistingSessions().catch(err => {
+        this.logger.error(`Erro ao reconectar sessões em background: ${err?.message}`);
+      });
+    }, 5000);
   }
 
   /**
    * Reconecta sessões WhatsApp que já têm credenciais salvas
+   * Reconecta uma de cada vez com delay para não sobrecarregar
    */
   private async reconnectExistingSessions() {
     try {
       // Busca todas as contas WhatsApp do banco
       const accounts = await this.tenantService.getAllWhatsappAccounts();
       
+      this.logger.log(`📱 Encontradas ${accounts.length} contas para verificar reconexão`);
+      
+      // Reconecta uma de cada vez com delay
       for (const account of accounts) {
-        const sessionId = account.sessionId;
-        
-        // Verifica se existem credenciais no banco de dados
-        const hasCredentials = await hasAuthState(sessionId);
-        
-        if (hasCredentials) {
-          // Credenciais existem no banco, tenta reconectar
-          this.logger.log(`🔄 Reconectando sessão ${sessionId} (credenciais no DB)...`);
+        try {
+          const sessionId = account.sessionId;
           
-          // Popula cache
-          this.sessionInfoCache.set(sessionId, {
-            tenantId: account.tenantId,
-            whatsappAccountId: account.id,
-          });
+          // Verifica se existem credenciais no banco de dados
+          const hasCredentials = await hasAuthState(sessionId);
           
-          // Cria sessão (vai usar credenciais do banco)
-          await this.sessionManager.createSession(sessionId);
-          
-        } else {
-          // Sem credenciais no banco, sessão não pode ser reconectada automaticamente
-          this.logger.debug(`Sessão ${sessionId} não tem credenciais no banco, ignorando`);
+          if (hasCredentials) {
+            this.logger.log(`🔄 Reconectando sessão ${sessionId}...`);
+            
+            // Popula cache
+            this.sessionInfoCache.set(sessionId, {
+              tenantId: account.tenantId,
+              whatsappAccountId: account.id,
+            });
+            
+            // Cria sessão (vai usar credenciais do banco)
+            await this.sessionManager.createSession(sessionId);
+            
+            // Delay entre reconexões para não sobrecarregar
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+          } else {
+            this.logger.debug(`Sessão ${sessionId} sem credenciais, ignorando`);
+          }
+        } catch (sessionError: any) {
+          // Erro em uma sessão não deve parar as outras
+          this.logger.error(`Erro ao reconectar sessão ${account.sessionId}: ${sessionError?.message}`);
         }
       }
+      
+      this.logger.log('✅ Processo de reconexão de sessões concluído');
     } catch (error: any) {
       this.logger.error(`Erro ao reconectar sessões: ${error?.message || error}`);
     }
