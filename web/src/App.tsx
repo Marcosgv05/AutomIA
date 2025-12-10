@@ -5,7 +5,6 @@ import { Sidebar } from './components/Sidebar';
 import { Login } from './views/Login';
 import { Dashboard } from './views/Dashboard';
 import { Connection } from './views/Connection';
-import { KnowledgeBase } from './views/KnowledgeBase';
 import { LiveChat } from './views/LiveChat';
 import { Calendar } from './views/Calendar';
 import { AgentConfig } from './views/AgentConfig';
@@ -51,8 +50,6 @@ function AppContent() {
         return <Dashboard />;
       case 'connection':
         return <Connection />;
-      case 'knowledge':
-        return <KnowledgeBase />;
       case 'chat':
         return <LiveChat />;
       case 'calendar':

@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   LayoutGrid, 
   MessageSquareText, 
-  DatabaseZap, 
   SlidersHorizontal, 
   QrCode,
   Calendar,
@@ -21,7 +20,6 @@ interface SidebarProps {
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Visão Geral', icon: LayoutGrid, inDevelopment: false },
   { id: 'chat', label: 'Atendimento', icon: MessageSquareText, inDevelopment: false },
-  { id: 'knowledge', label: 'Base de Conhecimento', icon: DatabaseZap, inDevelopment: false },
   { id: 'connection', label: 'Dispositivos', icon: QrCode, inDevelopment: false },
   { id: 'calendar', label: 'Agenda', icon: Calendar, inDevelopment: false },
   { id: 'blacklist', label: 'Blacklist', icon: ShieldBan, inDevelopment: false },

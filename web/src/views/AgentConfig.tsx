@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   Save, Sparkles, Clock, Loader2, CheckCircle, MessageCircle, Plus, Trash2,
-  User, Target, ShieldCheck, MessageSquare, ClipboardList, AlertTriangle, ChevronDown, ChevronUp
+  User, Target, ShieldCheck, MessageSquare, ClipboardList, AlertTriangle, ChevronDown, ChevronUp,
+  FileText, UploadCloud, Search, BookOpen
 } from 'lucide-react';
-import { tenantApi, agentApi, AgentSettings, StandardMessage, DataField, Objection } from '../services/api';
+import { tenantApi, agentApi, knowledgeApi, AgentSettings, StandardMessage, DataField, Objection, Document, KnowledgeBase } from '../services/api';
 
 const DAYS = [
   { key: 'mon', label: 'Seg' },
@@ -86,6 +87,18 @@ export const AgentConfig: React.FC<Props> = ({ onNavigate }) => {
   const [saved, setSaved] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [expandedBlocks, setExpandedBlocks] = useState<string[]>([]);
+  
+  // Base de Conhecimento
+  const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBase | null>(null);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [showAddDoc, setShowAddDoc] = useState(false);
+  const [newDocTitle, setNewDocTitle] = useState('');
+  const [newDocContent, setNewDocContent] = useState('');
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{ content: string; score: number; documentTitle: string }>>([]);
+  const [searching, setSearching] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Carrega tenant
   useEffect(() => {
@@ -103,6 +116,93 @@ export const AgentConfig: React.FC<Props> = ({ onNavigate }) => {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [tenantId]);
+
+  // Carrega Base de Conhecimento
+  useEffect(() => {
+    if (!tenantId) return;
+    
+    const loadKB = async () => {
+      try {
+        const { data } = await knowledgeApi.listKnowledgeBases(tenantId);
+        if (data.knowledgeBases.length > 0) {
+          setKnowledgeBase(data.knowledgeBases[0]);
+          const docsResponse = await knowledgeApi.listDocuments(data.knowledgeBases[0].id);
+          setDocuments(docsResponse.data.documents);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar base de conhecimento:', err);
+      }
+    };
+    loadKB();
+  }, [tenantId]);
+
+  // Funções da Base de Conhecimento
+  const createKnowledgeBase = async () => {
+    if (!tenantId) return;
+    try {
+      const { data } = await knowledgeApi.createKnowledgeBase(tenantId, 'Principal', 'Base de conhecimento do agente');
+      setKnowledgeBase(data.knowledgeBase);
+    } catch (err) {
+      console.error('Erro ao criar base:', err);
+    }
+  };
+
+  const addDocument = async () => {
+    if (!tenantId || !knowledgeBase || !newDocTitle.trim() || !newDocContent.trim()) return;
+    try {
+      setUploadingDoc(true);
+      const { data } = await knowledgeApi.createDocument({
+        tenantId,
+        knowledgeBaseId: knowledgeBase.id,
+        title: newDocTitle,
+        sourceType: 'txt',
+        content: newDocContent,
+      });
+      setDocuments([data.document, ...documents]);
+      setShowAddDoc(false);
+      setNewDocTitle('');
+      setNewDocContent('');
+    } catch (err) {
+      console.error('Erro ao adicionar documento:', err);
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const deleteDocument = async (id: string) => {
+    if (!confirm('Excluir este documento?')) return;
+    try {
+      await knowledgeApi.deleteDocument(id);
+      setDocuments(documents.filter(d => d.id !== id));
+    } catch (err) {
+      console.error('Erro ao excluir:', err);
+    }
+  };
+
+  const searchKnowledge = async () => {
+    if (!tenantId || !searchQuery.trim()) return;
+    try {
+      setSearching(true);
+      const { data } = await knowledgeApi.search(tenantId, searchQuery, 5);
+      setSearchResults(data.results);
+    } catch (err) {
+      console.error('Erro na busca:', err);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewDocTitle(file.name);
+      setNewDocContent(event.target?.result as string);
+      setShowAddDoc(true);
+    };
+    reader.readAsText(file);
+  };
 
   const updateField = <K extends keyof AgentSettings>(field: K, value: AgentSettings[K]) => {
     if (!settings) return;
@@ -723,6 +823,175 @@ export const AgentConfig: React.FC<Props> = ({ onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Base de Conhecimento */}
+      <div className="bg-surface border border-white/5 rounded-lg p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-indigo-400" />
+            <div>
+              <h3 className="font-semibold text-zinc-200">Base de Conhecimento</h3>
+              <p className="text-xs text-zinc-600">Documentos que a IA usa para responder</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {!knowledgeBase ? (
+              <button
+                onClick={createKnowledgeBase}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+              >
+                <Plus size={14} /> Criar Base
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg"
+                >
+                  <UploadCloud size={14} /> Upload
+                </button>
+                <button
+                  onClick={() => setShowAddDoc(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                >
+                  <Plus size={14} /> Documento
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".txt,.md"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+
+        {/* Busca */}
+        {knowledgeBase && (
+          <div className="mb-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchKnowledge()}
+                placeholder="Testar busca: digite uma pergunta..."
+                className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-300 placeholder-zinc-600"
+              />
+              <button
+                onClick={searchKnowledge}
+                disabled={searching}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg"
+              >
+                {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+              </button>
+            </div>
+            
+            {searchResults.length > 0 && (
+              <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
+                {searchResults.map((result, idx) => (
+                  <div key={idx} className="p-2 bg-zinc-800/50 rounded border border-zinc-700 text-xs">
+                    <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                      <span className="text-indigo-400">{result.documentTitle}</span>
+                      <span>{(result.score * 100).toFixed(0)}%</span>
+                    </div>
+                    <p className="text-zinc-400 line-clamp-2">{result.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lista de Documentos */}
+        <div className="space-y-2">
+          {documents.length === 0 ? (
+            <div className="text-center py-8 text-zinc-600">
+              <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{knowledgeBase ? 'Nenhum documento ainda' : 'Crie uma base para começar'}</p>
+            </div>
+          ) : (
+            documents.map((doc) => (
+              <div key={doc.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-zinc-500" />
+                  <div>
+                    <span className="text-sm text-zinc-300">{doc.title}</span>
+                    <div className="flex items-center gap-2 text-[10px] text-zinc-600">
+                      <span>{doc.sourceType.toUpperCase()}</span>
+                      <span>•</span>
+                      <span>{new Date(doc.createdAt).toLocaleDateString('pt-BR')}</span>
+                      <span>•</span>
+                      <span className={doc.status === 'ready' ? 'text-green-400' : doc.status === 'error' ? 'text-red-400' : 'text-yellow-400'}>
+                        {doc.status === 'ready' ? '✓ Pronto' : doc.status === 'error' ? '✕ Erro' : '⏳ Processando'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => deleteDocument(doc.id)}
+                  className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Modal Adicionar Documento */}
+      {showAddDoc && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 rounded-xl p-6 w-full max-w-lg mx-4 border border-zinc-800">
+            <h2 className="text-lg font-bold text-white mb-4">Adicionar Documento</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">Título</label>
+                <input
+                  type="text"
+                  value={newDocTitle}
+                  onChange={(e) => setNewDocTitle(e.target.value)}
+                  placeholder="Ex: FAQ, Serviços, Políticas..."
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">Conteúdo</label>
+                <textarea
+                  value={newDocContent}
+                  onChange={(e) => setNewDocContent(e.target.value)}
+                  placeholder="Cole aqui o conteúdo do documento..."
+                  rows={8}
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white resize-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => { setShowAddDoc(false); setNewDocTitle(''); setNewDocContent(''); }}
+                className="px-4 py-2 text-zinc-400 hover:text-white"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={addDocument}
+                disabled={uploadingDoc || !newDocTitle.trim() || !newDocContent.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg"
+              >
+                {uploadingDoc ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
