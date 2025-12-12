@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Sidebar } from './components/Sidebar';
+import { Navbar } from './components/Navbar';
 import { Login } from './views/Login';
 import { LandingPage } from './views/LandingPage';
 import { Dashboard } from './views/Dashboard';
@@ -84,11 +84,11 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-zinc-100 font-sans selection:bg-primary/30 flex">
-      <Sidebar currentView={currentView} onChangeView={setCurrentView} />
+    <div className="min-h-screen bg-background text-zinc-100 font-sans selection:bg-primary/30">
+      <Navbar currentView={currentView} onChangeView={setCurrentView} />
 
-      {/* Main Content Area - Adjusted margin for sidebar */}
-      <main className="flex-1 ml-16 lg:ml-64 p-4 lg:p-8 min-h-screen overflow-x-hidden transition-all duration-300">
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {renderView()}
       </main>
     </div>
