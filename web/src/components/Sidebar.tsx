@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) =
           <Command size={20} />
         </div>
         <span className="hidden lg:block ml-3 text-lg font-bold tracking-tight text-white">
-          AUTOM<span className="text-primary">IA</span>
+          ÁT<span className="text-primary">IMO</span>
         </span>
       </div>
 

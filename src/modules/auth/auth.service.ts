@@ -20,6 +20,32 @@ export class AuthService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  private getTokenExpiryDays(): number {
+    const raw = process.env.TOKEN_EXPIRY_DAYS;
+    const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 7;
+  }
+
+  private hashToken(token: string): string {
+    const secret = process.env.JWT_SECRET || '';
+    return crypto.createHash('sha256').update(token + secret).digest('hex');
+  }
+
+  private async createAuthSession(userId: string, token: string, expiresAt: Date) {
+    const tokenHash = this.hashToken(token);
+
+    await this.prisma.authSession.create({
+      data: {
+        userId,
+        tokenHash,
+        expiresAt,
+        lastUsedAt: new Date(),
+      },
+    });
+
+    this.tokenCache.set(token, { userId, expiresAt });
+  }
+
   /**
    * Login com email e senha
    */
@@ -46,10 +72,9 @@ export class AuthService {
 
     // Gera token
     const token = this.generateToken();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+    const expiresAt = new Date(Date.now() + this.getTokenExpiryDays() * 24 * 60 * 60 * 1000);
 
-    // Salva no cache
-    this.tokenCache.set(token, { userId: user.id, expiresAt });
+    await this.createAuthSession(user.id, token, expiresAt);
 
     const membership = user.tenantMemberships[0];
 
@@ -104,9 +129,9 @@ export class AuthService {
 
     // Gera token
     const token = this.generateToken();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + this.getTokenExpiryDays() * 24 * 60 * 60 * 1000);
 
-    this.tokenCache.set(token, { userId: user.id, expiresAt });
+    await this.createAuthSession(user.id, token, expiresAt);
 
     this.logger.log(`Novo usuário registrado: ${user.email}`);
 
@@ -127,19 +152,32 @@ export class AuthService {
    * Verifica e retorna dados do token
    */
   async verifyToken(token: string): Promise<UserPayload> {
-    const cached = this.tokenCache.get(token);
+    const tokenHash = this.hashToken(token);
+    const now = new Date();
 
-    if (!cached) {
+    const session = await this.prisma.authSession.findUnique({
+      where: { tokenHash },
+    });
+
+    if (!session || session.revokedAt) {
+      this.tokenCache.delete(token);
       throw new UnauthorizedException('Token inválido');
     }
 
-    if (cached.expiresAt < new Date()) {
+    if (session.expiresAt < now) {
       this.tokenCache.delete(token);
       throw new UnauthorizedException('Token expirado');
     }
 
+    await this.prisma.authSession.update({
+      where: { tokenHash },
+      data: { lastUsedAt: now },
+    });
+
+    this.tokenCache.set(token, { userId: session.userId, expiresAt: session.expiresAt });
+
     const user = await this.prisma.user.findUnique({
-      where: { id: cached.userId },
+      where: { id: session.userId },
       include: {
         tenantMemberships: {
           include: { tenant: true },
@@ -168,6 +206,13 @@ export class AuthService {
    */
   async logout(token: string) {
     this.tokenCache.delete(token);
+
+    const tokenHash = this.hashToken(token);
+    await this.prisma.authSession.updateMany({
+      where: { tokenHash, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+
     this.logger.log('Token invalidado');
   }
 
@@ -294,9 +339,9 @@ export class AuthService {
 
     // Gera token
     const token = this.generateToken();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + this.getTokenExpiryDays() * 24 * 60 * 60 * 1000);
 
-    this.tokenCache.set(token, { userId: user!.id, expiresAt });
+    await this.createAuthSession(user!.id, token, expiresAt);
 
     const membership = user!.tenantMemberships[0];
 

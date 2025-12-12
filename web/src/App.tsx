@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Login } from './views/Login';
+import { LandingPage } from './views/LandingPage';
 import { Dashboard } from './views/Dashboard';
 import { Connection } from './views/Connection';
 import { LiveChat } from './views/LiveChat';
@@ -16,12 +17,13 @@ import { Loader2 } from 'lucide-react';
 function AppContent() {
   const { isAuthenticated, isLoading, handleGoogleCallback } = useAuth();
   const [currentView, setCurrentView] = useState<View>('dashboard');
+  const location = useLocation();
 
   // Verifica se há token do Google na URL (callback)
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
-    
+
     if (token) {
       // Remove token da URL
       window.history.replaceState({}, '', window.location.pathname);
@@ -39,7 +41,25 @@ function AppContent() {
     );
   }
 
-  // Se não autenticado, mostra login
+  // Se está na rota de login
+  if (location.pathname === '/login') {
+    // Se já autenticado, redireciona para o app
+    if (isAuthenticated) {
+      return <Navigate to="/app" replace />;
+    }
+    return <Login />;
+  }
+
+  // Se está na raiz, mostra landing page
+  if (location.pathname === '/') {
+    // Se já autenticado, redireciona para o app
+    if (isAuthenticated) {
+      return <Navigate to="/app" replace />;
+    }
+    return <LandingPage />;
+  }
+
+  // Para rotas /app/*, verifica autenticação
   if (!isAuthenticated) {
     return <Login />;
   }
@@ -66,7 +86,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background text-zinc-100 font-sans selection:bg-primary/30 flex">
       <Sidebar currentView={currentView} onChangeView={setCurrentView} />
-      
+
       {/* Main Content Area - Adjusted margin for sidebar */}
       <main className="flex-1 ml-16 lg:ml-64 p-4 lg:p-8 min-h-screen overflow-x-hidden transition-all duration-300">
         {renderView()}
@@ -77,12 +97,12 @@ function AppContent() {
 
 function AppRoutes() {
   const location = useLocation();
-  
+
   // Rota do callback do Google é separada (não precisa de autenticação)
   if (location.pathname === '/auth/google/callback') {
     return <GoogleCallback />;
   }
-  
+
   return <AppContent />;
 }
 
@@ -95,3 +115,4 @@ function App() {
 }
 
 export default App;
+
